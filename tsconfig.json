@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2022", "lib": ["dom", "dom.iterable", "esnext"], "module": "esnext", "moduleResolution": "bundler",
     "jsx": "react-jsx", "strict": true, "isolatedModules": true, "noEmit": true, "skipLibCheck": true,
-    "resolveJsonModule": true, "esModuleInterop": true, "types": ["vitest/globals", "@testing-library/jest-dom"]
+    "resolveJsonModule": true, "esModuleInterop": true, "types": ["node", "vitest/globals", "@testing-library/jest-dom"]
   },
   "include": ["src", "tests"]
 }

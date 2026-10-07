@@ -68,6 +68,40 @@ Rewind window: `rewindWindowMs` limits how far back a live view can scrub (`null
 <Diorama source={{ live: true }} feed={feed} rewindWindowMs={5 * 60_000} />
 ```
 
+### Rem Live host features (0.3.0)
+
+Every new prop is opt-in and the defaults keep 0.2.0 behaviour, so existing hosts (RemHub) need no change.
+
+Public-stream folding: the public event stream (`{ type: 'score', runId, score }` events and a flat `cause` on the run end) folds into the same timeline as the private one. `DEATH_CAUSE_WORDS` and `END_WORDS` are the word maps behind the death and end labels.
+
+```ts
+const word = Object.hasOwn(DEATH_CAUSE_WORDS, cause) ? DEATH_CAUSE_WORDS[cause] : cause;
+const ended = END_WORDS[reason]; // 'fell', 'stopped early', 'time limit', ...
+```
+
+Controlled view: `camera` / `onCameraChange` and `customParams` / `onCustomParamsChange` let the host own the camera state; `persistPrefs={false}` stops the diorama reading and writing the viewer's prefs; `viewControls={false}` hides the camera/rotation/X-ray picker and `panels={false}` hides the layer panels. `onFrame` reports the playhead (a `DioramaFrameInfo`: timeline, frame, `T`, `live`, `behindMs`, `status`) for pages that draw their own HUD.
+
+```tsx
+<Diorama source={{ live: true }} feed={feed} cameras={CAMERA_IDS} camera={cam} onCameraChange={setCam}
+  customParams={params} onCustomParamsChange={setParams} persistPrefs={false} viewControls={false} panels={false}
+  onFrame={f => setBehind(f.behindMs)} />
+```
+
+Custom camera editing: `CustomCameraPanel` edits the `CustomCameraParams` (ranges in `CUSTOM_LIMITS`). While the custom camera is active and `onCustomParamsChange` is set, the stage also takes drag (yaw/pitch), wheel (distance) and keyboard control; `orbit()` is the pure step behind it.
+
+```tsx
+<CustomCameraPanel value={params} onChange={setParams} />
+const next = orbit(params, { dx: 12, dy: -4, zoomSteps: 1 }); // returns clamped params
+```
+
+Schematics: the catalogue (names, descriptions, previews) ships in the package, so a host needs no schematic API. Previews are relative to the host's `assetBase`.
+
+```ts
+schematicName(id);                    // 'Unknown schematic' when not in the catalogue
+schematicLabel(id, dataSha)?.name;    // null for an unknown id or a stale dataSha
+const src = `${assetBase}/${schematicPreview(id)}`; // '1.21.11/schematics/<file>' under assets/
+```
+
 ## License
 
 MIT

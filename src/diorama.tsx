@@ -90,6 +90,13 @@ export function Diorama({ source, feed, connected = true, className, label = 'Ru
     const hit = cur.scores.find(sc => sc.t >= b.start && seekActivity.progressAt(cur, sc.t) >= seekValue);
     updatePlayback(p => ({ ...seek(p, cur, hit ? hit.t : b.end, rewindWindowMs), playing: false }));
   }, [seekValue, seekActivity, live, status, tl.runId, updatePlayback, rewindWindowMs]);
+  // A windowed viewer who is paused (no rAF loop) is not stepped, so reconcile on new data: once the moving floor passes their T,
+  // they land on the window's start (not on live). Unwindowed: untouched.
+  useEffect(() => {
+    if (typeof rewindWindowMs !== 'number') return;
+    const b = bounds(tl, rewindWindowMs);
+    if (b && !clock.current.live && clock.current.T < b.start) updatePlayback(p => ({ ...p, T: b.start }));
+  }, [tl, rewindWindowMs, updatePlayback]);
   // The clock: one step per animation frame while playing or live; nothing while paused or the page is hidden.
   useEffect(() => {
     if (!pb.playing && !pb.live) return;

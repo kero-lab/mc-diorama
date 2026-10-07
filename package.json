@@ -1,6 +1,6 @@
 {
   "name": "@kero-lab/mc-diorama",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Rem's Minecraft diorama: event-driven 3D live/replay view (RemHub, Rem Live).",
   "exports": {
     ".": "./src/index.ts",

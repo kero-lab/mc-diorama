@@ -54,8 +54,9 @@ function apply(tl: Timeline, e: Ev): Timeline {
     const t = num(e.t) ?? Date.parse(String(e.at));
     return { ...tl, runId, activity: str(e.activity) ?? 'parkour', recordingVersion: num(e.recordingVersion), startT: t, startedAt: str(e.at), lastT: t, lastTick: num(e.tick) ?? 0 };
   }
-  if (e.type === 'state') {
-    const st = e.state as { runId?: unknown; score?: unknown } | undefined;
+  if (e.type === 'state' || e.type === 'score') {
+    // Private streams send the bot's state; the public stream (Rem Live) sends { type: 'score', runId, score }.
+    const st = (e.type === 'state' ? e.state : e) as { runId?: unknown; score?: unknown } | undefined;
     if (tl.runId !== null && st?.runId === tl.runId && typeof st.score === 'number') tl.scores.push({ t: num(e.t) ?? tl.lastT ?? 0, score: st.score });
     return tl;
   }
@@ -149,11 +150,14 @@ function apply(tl: Timeline, e: Ev): Timeline {
       k.schematics.push({ t, tick, seq, id, ok: e.ok === true, cause: str(e.cause) as DeathCause | null, waypoint: num(e.waypoint) });
       return tl;
     }
-    case 'run_ended':
-      tl.ended = { t, score: num(e.score) ?? 0, reason: e.reason as EndReason, durationMs: num(e.durationMs) ?? 0, death: (e.death ?? null) as RunEndRec['death'] };
+    case 'run_ended': {
+      // Public streams carry the cause flat (`cause`), private ones a `death` object.
+      const death = (e.death ?? (typeof e.cause === 'string' ? { cause: e.cause, seq: null, detail: null } : null)) as RunEndRec['death'];
+      tl.ended = { t, score: num(e.score) ?? 0, reason: e.reason as EndReason, durationMs: num(e.durationMs) ?? 0, death };
       tl.endT = t;
       tl.scores.push({ t, score: tl.ended.score });
       return tl;
+    }
     case 'ent': {
       const id = String(e.id), p = vec(e.p);
       if (!p || id === '__proto__') { tl.ignored++; return tl; }   // __proto__ would be written onto the prototype

@@ -8,10 +8,14 @@ import { Controls } from './controls';
 import { stateAt } from './frame';
 import { PUBLIC_LAYERS } from './layers';
 import { bounds, goLive, initialPlayback, seek, step, type Playback } from './playback';
-import { readPrefs, writePrefs, type DioramaPrefs } from './prefs';
+import { DEFAULT_PREFS, readPrefs, writePrefs, type DioramaPrefs } from './prefs';
 import { BUILTIN_CAMERA_IDS, type CameraId } from './registry/cameras';
+import { sanitizeCustom, type CustomCameraParams } from './registry/custom-camera';
 import { layerFor, type LayerDef } from './registry/layers';
+import type { FrameState } from './frame';
+import type { Timeline } from './types';
 import { ShowOverlay } from './show-overlay';
+import { OrbitSurface } from './orbit-surface';
 import { useRunTimeline, type TimelineStatus } from './use-run-timeline';
 
 const DioramaCanvas = lazy(() => import('./canvas'));
@@ -49,14 +53,32 @@ function statusLine(live: boolean, feed: LiveFeed | undefined, connected: boolea
 
 /** A run in 3D (spec §4): the live run (`{ live: true }` + the page's feed) or a stored one (`{ runId }`). `connected` is
  *  the live connection state (`live.connected && live.upstream`); ignored for a replay. */
-export function Diorama({ source, feed, connected = true, className, label = 'Run diorama', layers = PUBLIC_LAYERS, cameras = BUILTIN_CAMERA_IDS, seekToProgress, compact = false, rewindWindowMs = null }: { source: TimelineSource; feed?: LiveFeed; connected?: boolean; className?: string; label?: string; layers?: Readonly<Record<string, LayerDef>>; cameras?: readonly CameraId[]; seekToProgress?: { value: number; activity: ActivityModule }; compact?: boolean; rewindWindowMs?: number | null }) {
+export interface DioramaFrameInfo { tl: Timeline; frame: FrameState; T: number; live: boolean; behindMs: number | null; status: TimelineStatus }
+export interface DioramaProps {
+  source: TimelineSource; feed?: LiveFeed; connected?: boolean; className?: string; label?: string;
+  layers?: Readonly<Record<string, LayerDef>>; cameras?: readonly CameraId[];
+  seekToProgress?: { value: number; activity: ActivityModule }; compact?: boolean; rewindWindowMs?: number | null;
+  camera?: CameraId; onCameraChange?: (id: CameraId) => void;
+  customParams?: CustomCameraParams; onCustomParamsChange?: (p: CustomCameraParams) => void;
+  /** Default true; false = never read or write the host's prefsKey. */
+  persistPrefs?: boolean;
+  /** Default true; false = hide the camera/rotation/X-ray picker (the timeline stays). */
+  viewControls?: boolean;
+  /** Default true; false = hide the layer's panels under the stage. */
+  panels?: boolean;
+  /** About 10 Hz while playing or live, and on every seek, pause and new data. */
+  onFrame?: (f: DioramaFrameInfo) => void;
+}
+
+export function Diorama({ source, feed, connected = true, className, label = 'Run diorama', layers = PUBLIC_LAYERS, cameras = BUILTIN_CAMERA_IDS, seekToProgress, compact = false, rewindWindowMs = null,
+  camera: cameraProp, onCameraChange, customParams: customProp, onCustomParamsChange, persistPrefs = true, viewControls = true, panels = true, onFrame }: DioramaProps) {
   const live = 'live' in source;
   const win = live ? (rewindWindowMs ?? null) : null;   // the window clips the live run only, never a replay
   const camIds = cameras.length ? cameras : BUILTIN_CAMERA_IDS;
   const host = useDioramaHost();
   const { tl, status, error } = useRunTimeline(source, feed);
   const reducedMotion = useReducedMotion();
-  const [prefs, setPrefs] = useState<DioramaPrefs>(() => readPrefs(host.prefsKey));
+  const [prefs, setPrefs] = useState<DioramaPrefs>(() => persistPrefs ? readPrefs(host.prefsKey) : DEFAULT_PREFS);
   const [pb, setPb] = useState<Playback>(() => initialPlayback(tl, live, win));
   const [selected, setSelected] = useState<number | null>(null);
   const [webgl, setWebgl] = useState<boolean | null>(null);   // null until probed (after mount): render neither the canvas nor the fallback
@@ -67,7 +89,7 @@ export function Diorama({ source, feed, connected = true, className, label = 'Ru
   const tlRef = useRef(tl);
   tlRef.current = tl;
   useEffect(() => { setWebgl(hasWebGL()); }, []);
-  useEffect(() => { writePrefs(host.prefsKey, prefs); }, [prefs, host.prefsKey]);
+  useEffect(() => { if (persistPrefs) writePrefs(host.prefsKey, prefs); }, [prefs, host.prefsKey, persistPrefs]);
   const updatePlayback = useCallback((update: (current: Playback) => Playback) => {
     const next = update(clock.current);
     clock.current = next;
@@ -125,6 +147,14 @@ export function Diorama({ source, feed, connected = true, className, label = 'Ru
     return () => cancelAnimationFrame(raf);
   }, [pb.playing, pb.live, win]);
   const frame = useMemo(() => stateAt(tl, pb.T), [tl, pb.T]);
+  // State out for a page that drives the camera or shows the playhead itself. The callback goes through a ref, so a new
+  // closure each render never re-fires this; it runs on real changes only (10 Hz publishes, seeks, pauses, new data).
+  const onFrameRef = useRef(onFrame);
+  onFrameRef.current = onFrame;
+  useEffect(() => {
+    const b = bounds(tl, win);
+    onFrameRef.current?.({ tl, frame, T: pb.T, live: pb.live, behindMs: b && !pb.live ? Math.max(0, b.end - pb.T) : null, status });
+  }, [tl, frame, pb.T, pb.live, status, win]);
   // Handlers read the Timeline through tlRef, so they stay the same functions across frames (memoised children).
   const onSeek = useCallback((T: number) => updatePlayback(p => ({ ...seek(p, tlRef.current, T, win), playing: false })), [updatePlayback, win]);
   const onPlay = useCallback((playing: boolean) => updatePlayback(p => {
@@ -133,7 +163,14 @@ export function Diorama({ source, feed, connected = true, className, label = 'Ru
   }), [updatePlayback, win]);
   const onSpeed = useCallback((speed: number) => updatePlayback(p => ({ ...p, speed })), [updatePlayback]);
   const onLive = useCallback(() => updatePlayback(p => goLive(p, tlRef.current, win)), [updatePlayback, win]);
-  const camera = camIds.includes(prefs.camera) ? prefs.camera : camIds[0];   // a hidden camera is never the active one
+  const wanted = cameraProp ?? prefs.camera;
+  const camera = camIds.includes(wanted) ? wanted : camIds[0];   // a hidden camera is never the active one
+  const custom = useMemo(() => customProp ? sanitizeCustom(customProp) : prefs.custom, [customProp, prefs.custom]);
+  const onPrefs = useCallback((next: DioramaPrefs) => {
+    if (next.camera !== camera && onCameraChange) onCameraChange(next.camera);
+    if (next.custom !== custom && onCustomParamsChange) onCustomParamsChange(next.custom);
+    setPrefs(p => ({ ...next, camera: cameraProp !== undefined ? p.camera : next.camera, custom: customProp ? p.custom : next.custom }));
+  }, [camera, custom, cameraProp, customProp, onCameraChange, onCustomParamsChange]);
   const layer = layerFor(tl.activity, layers);
   const xray = layer.xray && (prefs.xray || webgl === false);   // a layer set without X-ray ignores the pref
   // A capped open run is truncated while live but still folding: "cut short" (notice and marker) only once it is over.
@@ -145,16 +182,17 @@ export function Diorama({ source, feed, connected = true, className, label = 'Ru
   return (
     <section aria-label={label} data-status={status} data-connected={live ? String(connected) : undefined} className={className ?? 'space-y-3'}>
       <div className='relative aspect-[4/3] w-full overflow-hidden rounded-lg border bg-gradient-to-b from-zinc-100 to-zinc-200 dark:from-zinc-900 dark:to-zinc-950 sm:aspect-[16/9]'>
-        {shown && webgl && <Suspense fallback={canvasFallback}><DioramaCanvas tl={tl} frame={frame} camera={camera} custom={prefs.custom} rotation={prefs.rotation} xray={xray} reducedMotion={reducedMotion} layer={layer} selected={selected} active={visible && (pb.playing || pb.live) && !frame.atEnd} timeScale={timeScale} renderFrame={renderFrame} /></Suspense>}
+        {shown && webgl && <Suspense fallback={canvasFallback}><DioramaCanvas tl={tl} frame={frame} camera={camera} custom={custom} rotation={prefs.rotation} xray={xray} reducedMotion={reducedMotion} layer={layer} selected={selected} active={visible && (pb.playing || pb.live) && !frame.atEnd} timeScale={timeScale} renderFrame={renderFrame} /></Suspense>}
         {shown && webgl === false && <p className='absolute inset-0 grid place-items-center p-6 text-center text-sm text-muted-foreground'>3D view unavailable (WebGL is off in this browser).{compact ? '' : ' Every number is listed below.'}</p>}
+        {shown && webgl && camera === 'custom' && onCustomParamsChange && <OrbitSurface value={custom} onChange={onCustomParamsChange} />}
         {shown && <ShowOverlay tl={tl} frame={frame} />}
         {shown && <Overlay tl={tl} frame={frame} />}
         {line && <p role='status' className='absolute inset-x-0 bottom-0 bg-background/80 px-3 py-1.5 text-xs text-muted-foreground'>{line}</p>}
         {cutShort && <p role='status' className='absolute right-3 top-3 rounded bg-amber-500/90 px-2 py-0.5 text-xs text-black'>Recording ends early: it was cut short</p>}
       </div>
-      {shown && !compact && <Controls tl={tl} pb={pb} live={live} markers={markers} prefs={camera === prefs.camera ? prefs : { ...prefs, camera }} reducedMotion={reducedMotion}
-        cameras={camIds} rewindWindowMs={win} canXray={layer.xray} onPrefs={setPrefs} onSeek={onSeek} onPlay={onPlay} onSpeed={onSpeed} onLive={onLive} />}
-      {!compact && <Panels tl={tl} frame={frame} xray={xray} selected={selected} onSelect={setSelected} onSeek={onSeek} />}
+      {shown && !compact && <Controls viewControls={viewControls} tl={tl} pb={pb} live={live} markers={markers} prefs={camera === prefs.camera && custom === prefs.custom ? prefs : { ...prefs, camera, custom }} reducedMotion={reducedMotion}
+        cameras={camIds} rewindWindowMs={win} canXray={layer.xray} onPrefs={onPrefs} onSeek={onSeek} onPlay={onPlay} onSpeed={onSpeed} onLive={onLive} />}
+      {panels && !compact && <Panels tl={tl} frame={frame} xray={xray} selected={selected} onSelect={setSelected} onSeek={onSeek} />}
     </section>
   );
 }

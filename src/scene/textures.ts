@@ -15,10 +15,11 @@ export function useBlockMaterials(names: string[]): THREE.MeshStandardMaterial[]
   const existing=materialSets.get(key); if (existing) return existing;
   const result=textures.map((texture, i) => {
     const name = names[i];
-    let material = vanilla.get(name);
+    const vkey = `${assetBase}|${name}`;
+    let material = vanilla.get(vkey);
     if (!material) {
       material = createVanillaMaterial(texture, name);
-      vanilla.set(name, material);
+      vanilla.set(vkey, material);
     }
     return material;
   });

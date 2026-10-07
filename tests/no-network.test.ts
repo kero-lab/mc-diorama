@@ -6,6 +6,6 @@ const files = (dir: string): string[] => readdirSync(dir).flatMap(n => { const p
 
 it('no fetch, EventSource, absolute URL or /api path anywhere in src', () => {
   const bad = files('src').flatMap(f => readFileSync(f, 'utf8').split('\n').map((l, i) => ({ f, i: i + 1, l })))
-    .filter(({ l }) => /\bfetch\(|new EventSource|https?:\/\/|['"`]\/api\/|['"`]\/minecraft\//.test(l) && !l.trim().startsWith('//') && !l.trim().startsWith('*'));
+    .filter(({ l }) => /\bfetch\s*[<(]|XMLHttpRequest|new EventSource|WebSocket|sendBeacon|https?:\/\/|['"`]\/\/[a-z]|['"`]\/api\/|['"`]\/minecraft\//.test(l) && !l.trim().startsWith('//') && !l.trim().startsWith('*'));
   expect(bad.map(b => `${b.f}:${b.i}: ${b.l.trim()}`)).toEqual([]);
 });

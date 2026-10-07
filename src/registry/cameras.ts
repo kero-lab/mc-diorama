@@ -62,6 +62,8 @@ export const CAMERAS: Record<CameraId, CameraDef> = {
   cinematic: { id: 'cinematic', label: 'Cinematic', projection: 'persp', pose: i => ({ ...direct(null, i).pose, cut: false }) },
 };
 export const CAMERA_IDS = Object.keys(CAMERAS) as CameraId[];
+/** The six built-in cameras, in picker order: the Diorama default. */
+export const BUILTIN_CAMERA_IDS: readonly CameraId[] = CAMERA_IDS;
 
 export type Shot = 'follow' | 'establish' | 'landing' | 'death';
 export interface DirectorState { shot: Shot; since: number }

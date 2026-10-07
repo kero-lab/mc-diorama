@@ -1,16 +1,22 @@
 import type { ComponentType } from 'react';
 import { gapsOf, type FrameState } from '../frame';
 import type { Timeline } from '../types';
+import type { DioramaHost } from '../host';
+
+/** What a layer needs from the host to name things (schematic display names). */
+export type LayerNames = Pick<DioramaHost, 'schematicName' | 'schematicLabel'>;
 
 export interface TimelineMarker { t: number; kind: 'paste' | 'slow_plan' | 'late_plan' | 'correction' | 'death' | 'gap' | 'reset' | 'truncated' | 'end'; label: string }
 export interface LayerSceneProps { tl: Timeline; frame: FrameState; xray: boolean; selected: number | null }
 export interface LayerOverlayProps { tl: Timeline; frame: FrameState }
 export interface LayerPanelProps { tl: Timeline; frame: FrameState; xray: boolean; selected: number | null; onSelect(seq: number | null): void; onSeek(t: number): void }
 /** One activity's contribution (spec §4.3): R3F scene parts, a DOM overlay on the canvas, DOM panels, timeline markers. */
-export interface LayerDef { activity: string; label: string; Scene: ComponentType<LayerSceneProps>; Overlay: ComponentType<LayerOverlayProps>; Panels: ComponentType<LayerPanelProps>; markers(tl: Timeline): TimelineMarker[] }
+export interface LayerDef { activity: string; label: string; Scene: ComponentType<LayerSceneProps>; Overlay: ComponentType<LayerOverlayProps>; Panels: ComponentType<LayerPanelProps>; markers(tl: Timeline, names?: LayerNames): TimelineMarker[];
+  /** Does this layer set carry X-ray parts? The X-ray switch shows only for a layer that does. */
+  xray: boolean }
 
 const Nothing = () => null;
-export const GENERIC_LAYER: LayerDef = { activity: '*', label: 'Run', Scene: Nothing, Overlay: Nothing, Panels: Nothing, markers: () => [] };
+export const GENERIC_LAYER: LayerDef = { activity: '*', label: 'Run', Scene: Nothing, Overlay: Nothing, Panels: Nothing, markers: () => [], xray: false };
 export function layerFor(activity: string, layers: Readonly<Record<string, LayerDef>>): LayerDef { return Object.hasOwn(layers, activity) ? layers[activity] : GENERIC_LAYER; }
 
 /** Markers every activity shares: where the feed had a hole, where she was reset, where a truncated recording stops, the end. */

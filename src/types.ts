@@ -20,7 +20,7 @@ export interface CorrectionRec { t: number; tick: number | null; seq: number; pr
 /** `ok` stays as the event said (null today); `confirmedAt` is when a later `block` event at the target confirmed it. */
 export interface ActionRec { t: number; tick: number | null; kind: string; item: string | null; target: Vec3T | { entity: string } | null; ok: boolean | null; confirmedAt: number | null }
 export interface SchematicRec { t: number; tick: number | null; seq: number; id: string | null; ok: boolean; cause: DeathCause | null; waypoint: number | null }
-export interface RunEndRec { t: number; score: number; reason: EndReason; durationMs: number; death: { cause: DeathCause; seq: number; detail: Record<string, unknown> } | null }
+export interface RunEndRec { t: number; score: number; reason: EndReason; durationMs: number; death: { cause: DeathCause; seq: number | null; detail: Record<string, unknown> | null } | null }
 export interface ParkourData { jumps: JumpRec[]; plans: PlanRec[]; pastes: PasteRec[]; corrections: CorrectionRec[]; actions: ActionRec[]; schematics: SchematicRec[] }
 export interface Timeline {
   runId: string | null; activity: string; recordingVersion: number | null; startT: number | null; startedAt: string | null;

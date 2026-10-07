@@ -34,3 +34,5 @@ export { moveKindOf, landingValues, marginBand, targetKey, publicParkourMarkers,
 export * from './comparison/pace';
 export { PaceTrack } from './comparison/pace-track';
 export { SideWindow } from './comparison/side-window';
+export { DEATH_CAUSE_WORDS } from './layers/parkour/derive';
+export { END_WORDS } from './layers/parkour/activity';

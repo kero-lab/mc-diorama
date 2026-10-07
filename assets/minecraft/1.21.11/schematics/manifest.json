@@ -1,0 +1,1068 @@
+{
+  "version": "1.21.11",
+  "width": 576,
+  "height": 320,
+  "entries": {
+    "47770924": {
+      "name": "Honey Steps",
+      "description": "A level chain of honey stepping stones.",
+      "file": "47770924-2e113b75f15b-3f6a2183f9ce.png",
+      "blueprint": "47770924-blueprint-2b4801146bfd.png",
+      "dataSha": "2e113b75f15b7aea38a95361df1eea4ae16fb05841af60e01c71e470d382b85a",
+      "direction": [
+        -1,
+        0.8,
+        -1
+      ],
+      "blocks": 7,
+      "tags": [
+        "Honey"
+      ],
+      "camera": {
+        "position": [
+          -18.86094478138854,
+          22.114857325110833,
+          -24.86094478138854
+        ],
+        "target": [
+          6.5,
+          1.8261014999999998,
+          0.5
+        ],
+        "span": 12.049654944874796,
+        "far": 123.61997362911146
+      }
+    },
+    "0442a82a": {
+      "name": "Honey Headhitters",
+      "description": "Honey stepping stones with overhead honey blocks.",
+      "file": "0442a82a-afa937338c20-1fbb42291739.png",
+      "blueprint": "0442a82a-blueprint-563bee1992f5.png",
+      "dataSha": "afa937338c20ebdda3e93512b6006ca7677e95fd2a1edcae4d1bb57db8ffd08b",
+      "direction": [
+        -1,
+        0.8,
+        -1
+      ],
+      "blocks": 9,
+      "tags": [
+        "Honey",
+        "Headhitter"
+      ],
+      "camera": {
+        "position": [
+          -18.766683989651813,
+          21.913347191721453,
+          -24.766683989651813
+        ],
+        "target": [
+          6.5,
+          1.7,
+          0.5
+        ],
+        "span": 11.79062779319133,
+        "far": 123.16050665383912
+      }
+    },
+    "11a03fac": {
+      "name": "Slime Stepdown",
+      "description": "Upper pad followed by a lower pad and low exit.",
+      "file": "11a03fac-d1d12057c3cf-5b9a83ddad42.png",
+      "blueprint": "11a03fac-blueprint-cf0110e0427d.png",
+      "dataSha": "d1d12057c3cfee7eb3fcaa7f1c8e2f65104a2699405d227e6c6d3d7f8335f030",
+      "direction": [
+        -1,
+        0.8,
+        -1
+      ],
+      "blocks": 4,
+      "tags": [
+        "Slime"
+      ],
+      "camera": {
+        "position": [
+          -20.889098543350272,
+          25.63738033468022,
+          -27.389098543350272
+        ],
+        "target": [
+          7,
+          3.3261015,
+          0.5
+        ],
+        "span": 15.541652723346097,
+        "far": 135.94326458211265
+      }
+    },
+    "194fdb81": {
+      "name": "Ice Headhitter Relay",
+      "description": "Ice runway under a slab ceiling, with an extra landing before the exit.",
+      "file": "194fdb81-504737f26210-e2fce88858eb.png",
+      "blueprint": "194fdb81-blueprint-ae93b8a1b61b.png",
+      "dataSha": "504737f26210c3495fd8d5d8f4bd55f15686261405beb0863a8401da393407b6",
+      "direction": [
+        -1,
+        0.8,
+        1
+      ],
+      "blocks": 15,
+      "tags": [
+        "Ice",
+        "Headhitter"
+      ],
+      "camera": {
+        "position": [
+          -24.81247246994056,
+          30.09997797595245,
+          36.31247246994056
+        ],
+        "target": [
+          11,
+          1.45,
+          0.5
+        ],
+        "span": 14.97450812062104,
+        "far": 174.56514102645906
+      }
+    },
+    "27f41406": {
+      "name": "Far Ladder Catch",
+      "description": "Single ladder five coordinate units from the entry.",
+      "file": "27f41406-aff4fc7a2611-d0ed2698607c.png",
+      "blueprint": "27f41406-blueprint-fc6385f9f239.png",
+      "dataSha": "aff4fc7a2611b9afbd01060dda216867229245473b839aaf221713a0a2ba85b9",
+      "direction": [
+        -1,
+        0.8,
+        1
+      ],
+      "blocks": 6,
+      "tags": [
+        "Ladders"
+      ],
+      "camera": {
+        "position": [
+          -15.80099501922031,
+          17.44079601537625,
+          20.80099501922031
+        ],
+        "target": [
+          4.5,
+          1.2,
+          0.4999999999999999
+        ],
+        "span": 9.120276550830924,
+        "far": 98.95563791308149
+      }
+    },
+    "2b36717a": {
+      "name": "Neo Weave",
+      "description": "Single-width fence walls with alternating landing offsets.",
+      "file": "2b36717a-5b8f0b21c7cc-76c9f3ededed.png",
+      "blueprint": "2b36717a-blueprint-1f8d2c422c11.png",
+      "dataSha": "5b8f0b21c7cc089e6da014017e37f42d049f2131b243831f0e26508de6e8113f",
+      "direction": [
+        -1,
+        1.25,
+        -1
+      ],
+      "blocks": 22,
+      "tags": [
+        "Neo"
+      ],
+      "camera": {
+        "position": [
+          -18.241952414369695,
+          35.87854201796212,
+          -25.741952414369695
+        ],
+        "target": [
+          9,
+          1.8261014999999998,
+          1.5
+        ],
+        "span": 17.66258445133357,
+        "far": 154.25417281651158
+      }
+    },
+    "2ff722f3": {
+      "name": "Split Neo",
+      "description": "Two approach pads around a broad wall, then another wall crossing.",
+      "file": "2ff722f3-a32370217e52-926cea00302f.png",
+      "blueprint": "2ff722f3-blueprint-79c835774759.png",
+      "dataSha": "a32370217e522606b999d5aba7cd2d048ee8e33c06a847196959b7625e45398e",
+      "direction": [
+        -1,
+        0.8,
+        1
+      ],
+      "blocks": 21,
+      "tags": [
+        "Neo"
+      ],
+      "camera": {
+        "position": [
+          -18.71161193006916,
+          21.46928954405533,
+          26.21161193006916
+        ],
+        "target": [
+          6,
+          1.7,
+          1.5
+        ],
+        "span": 12.201451061246773,
+        "far": 120.4548506162052
+      }
+    },
+    "3087330f": {
+      "name": "Slime Drop Run",
+      "description": "Drop across two low slime pads toward a level exit.",
+      "file": "3087330f-ca31df694f60-b6273da23b56.png",
+      "blueprint": "3087330f-blueprint-99a97bcc9203.png",
+      "dataSha": "ca31df694f60ec448b1ca559b6395f60e141ecc667996d828dfa86ab880f7d0f",
+      "direction": [
+        -1,
+        0.8,
+        -1
+      ],
+      "blocks": 4,
+      "tags": [
+        "Slime"
+      ],
+      "camera": {
+        "position": [
+          -20.30964553661667,
+          24.77381792929334,
+          -26.30964553661667
+        ],
+        "target": [
+          6.5,
+          3.3261015,
+          0.5
+        ],
+        "span": 15.13082945529065,
+        "far": 130.68155397249052
+      }
+    },
+    "3513c613": {
+      "name": "Slime Headhitter",
+      "description": "Slab ceiling over the upper slime pad, then a lower pad.",
+      "file": "3513c613-12b490a6ccd4-afca369a3261.png",
+      "blueprint": "3513c613-blueprint-02968060c003.png",
+      "dataSha": "12b490a6ccd4aa1aa7ed9875c6008583ffca4769905ad5784c7683ea16ac2fac",
+      "direction": [
+        -1,
+        0.8,
+        -1
+      ],
+      "blocks": 5,
+      "tags": [
+        "Slime",
+        "Headhitter"
+      ],
+      "camera": {
+        "position": [
+          -20.30964553661667,
+          24.77381792929334,
+          -26.30964553661667
+        ],
+        "target": [
+          6.5,
+          3.3261015,
+          0.5
+        ],
+        "span": 15.13082945529065,
+        "far": 130.68155397249052
+      }
+    },
+    "3f66b71e": {
+      "name": "Twin Ladder Pillars",
+      "description": "Two capped ladder pillars.",
+      "file": "3f66b71e-f2b604fc6ee9-3615bc228e8a.png",
+      "blueprint": "3f66b71e-blueprint-5add772d9924.png",
+      "dataSha": "f2b604fc6ee941657db701c31f0fb28e5617ed56a527f9b59abd5099b192a575",
+      "direction": [
+        -1,
+        0.8,
+        1
+      ],
+      "blocks": 16,
+      "tags": [
+        "Ladders"
+      ],
+      "camera": {
+        "position": [
+          -18.97876256626437,
+          22.3330100530115,
+          26.978762560676433
+        ],
+        "target": [
+          6.5,
+          1.95,
+          1.4999999944120646
+        ],
+        "span": 12.345239210269664,
+        "far": 124.19426735455968
+      }
+    },
+    "3fda7be9": {
+      "name": "Wide Fencepost Run",
+      "description": "Five fence posts, spaced four coordinate units apart.",
+      "file": "3fda7be9-930e207888a8-5070aea1a971.png",
+      "blueprint": "3fda7be9-blueprint-312281c62f55.png",
+      "dataSha": "930e207888a8592c7d4158c000aa7bab3e2f648f52ceb6daf90f5a8ca8ee7fe0",
+      "direction": [
+        -1,
+        0.8,
+        1
+      ],
+      "blocks": 7,
+      "tags": [
+        "Fenceposts"
+      ],
+      "camera": {
+        "position": [
+          -26.850047040548894,
+          32.68003763243912,
+          39.850047040548894
+        ],
+        "target": [
+          12.5,
+          1.2,
+          0.5
+        ],
+        "span": 15.693448839718075,
+        "far": 191.80877602899048
+      }
+    },
+    "4941bec6": {
+      "name": "Neo Gate",
+      "description": "Broad wall, split pads and a second wall with a central opening.",
+      "file": "4941bec6-c432c2761800-fd3b93381af7.png",
+      "blueprint": "4941bec6-blueprint-7c4c59a40b21.png",
+      "dataSha": "c432c27618008016e0ed65a15156ef2f53023a988fa413ef511ef92f6cbe296b",
+      "direction": [
+        1,
+        0.8,
+        1
+      ],
+      "blocks": 32,
+      "tags": [
+        "Neo"
+      ],
+      "camera": {
+        "position": [
+          26.59682354433436,
+          19.37745883546749,
+          24.59682354433436
+        ],
+        "target": [
+          4.5,
+          1.7,
+          2.5
+        ],
+        "span": 11.482510342149743,
+        "far": 107.70926585678185
+      }
+    },
+    "4a67b679": {
+      "name": "Ladder Wall Circuit",
+      "description": "Longer ladder chain across walls, slabs and quartz supports.",
+      "file": "4a67b679-262b53dce93d-c94c99ced790.png",
+      "blueprint": "4a67b679-blueprint-b6614d711e29.png",
+      "dataSha": "262b53dce93d12cf4e4700bf476224609b13ea9ae11639ec23bcaf2ff9d11350",
+      "direction": [
+        -1,
+        0.8,
+        1
+      ],
+      "blocks": 50,
+      "tags": [
+        "Ladders"
+      ],
+      "camera": {
+        "position": [
+          -25.71009701976707,
+          29.168077615813655,
+          40.185097013806605
+        ],
+        "target": [
+          8,
+          2.2,
+          6.4749999940395355
+        ],
+        "span": 18.178929616350924,
+        "far": 164.31727368755512
+      }
+    },
+    "564cf053": {
+      "name": "Honey Wall Slide",
+      "description": "Carry entry momentum along a honey wall beside a descending gap.",
+      "file": "564cf053-f11d422dd349-5a994c1a7ec8.png",
+      "blueprint": "564cf053-blueprint-0e0ef4109a23.png",
+      "dataSha": "f11d422dd349753f4ab6a6c625fc5986d3d17c2ddfa1d4ae1ad876a658f4138b",
+      "direction": [
+        1,
+        0.8,
+        1
+      ],
+      "blocks": 10,
+      "tags": [
+        "Honey"
+      ],
+      "camera": {
+        "position": [
+          24.534695507702654,
+          18.627756406162124,
+          21.534695507702654
+        ],
+        "target": [
+          4,
+          2.2,
+          0.9999999999999999
+        ],
+        "span": 11.174392891108157,
+        "far": 100.09479295924913
+      }
+    },
+    "5b7fdc6c": {
+      "name": "Ladder Corner Relay",
+      "description": "Three ladder pillars with a corner and face-on/sideways transfers.",
+      "file": "5b7fdc6c-265e57f19525-9e071f5307f5.png",
+      "blueprint": "5b7fdc6c-blueprint-956f2164bb77.png",
+      "dataSha": "265e57f19525ec63882d1bc3d8ea8f8ab1b1feeaf7d11f6003411cbcce359937",
+      "direction": [
+        -1,
+        0.8,
+        1
+      ],
+      "blocks": 19,
+      "tags": [
+        "Ladders"
+      ],
+      "camera": {
+        "position": [
+          -22.572960567652963,
+          26.40836845412237,
+          33.57296056765296
+        ],
+        "target": [
+          8,
+          1.95,
+          3
+        ],
+        "span": 15.590743022704213,
+        "far": 149.0255434770201
+      }
+    },
+    "7006faf0": {
+      "name": "Slime Slab Transfer",
+      "description": "Offset slime pads and a slab landing before the exit.",
+      "file": "7006faf0-7dded9dee798-10a8200f30cc.png",
+      "blueprint": "7006faf0-blueprint-d6950e840e30.png",
+      "dataSha": "7dded9dee79883e8a4bb87f5bfac3faa8e09234ff5fc5229d68923225acdd538",
+      "direction": [
+        1,
+        0.8,
+        -1
+      ],
+      "blocks": 5,
+      "tags": [
+        "Slime"
+      ],
+      "camera": {
+        "position": [
+          34.420599573845436,
+          26.16258115907635,
+          -26.420599573845436
+        ],
+        "target": [
+          6.5,
+          3.8261015,
+          1.5
+        ],
+        "span": 16.97953416154016,
+        "far": 136.09681393102966
+      }
+    },
+    "7ba9f27e": {
+      "name": "Long Ice Run",
+      "description": "More widely spaced ice pads and a longer exit gap.",
+      "file": "7ba9f27e-68ed099bca13-f9740c4259f3.png",
+      "blueprint": "7ba9f27e-blueprint-7a7f57b28a2e.png",
+      "dataSha": "68ed099bca13e7928499d8af8bc1760ed8e9f24a18bde99407fc7023e44e04a6",
+      "direction": [
+        -1,
+        0.8,
+        1
+      ],
+      "blocks": 5,
+      "tags": [
+        "Ice"
+      ],
+      "camera": {
+        "position": [
+          -24.286615140128717,
+          29.65539361210298,
+          35.28661514012872
+        ],
+        "target": [
+          10.5,
+          1.8261014999999998,
+          0.5
+        ],
+        "span": 15.336241089318374,
+        "far": 169.56467841941787
+      }
+    },
+    "7de341cf": {
+      "name": "Neo Arc · Right",
+      "description": "Mirrored arc bending right from the entry toward the exit.",
+      "file": "7de341cf-c6803be39084-54dfb5e31fd4.png",
+      "blueprint": "7de341cf-blueprint-dd703c5c6f2a.png",
+      "dataSha": "c6803be390846e9be2c649b858cbf8c10555598b2d156b18520b01ba76d6c857",
+      "direction": [
+        -1,
+        0.8,
+        -1
+      ],
+      "blocks": 31,
+      "tags": [
+        "Neo"
+      ],
+      "camera": {
+        "position": [
+          -27.643518249359836,
+          33.94091609948787,
+          -38.143518249359836
+        ],
+        "target": [
+          12.5,
+          1.8261014999999998,
+          2
+        ],
+        "span": 18.2120039657065,
+        "far": 195.6764903730023
+      }
+    },
+    "82396ecc": {
+      "name": "Long Wide Neo Weave",
+      "description": "Wider spacing between the two-cell-wide wall obstacles.",
+      "file": "82396ecc-6438f52250bc-d2b9a46e478b.png",
+      "blueprint": "82396ecc-blueprint-d594b75802b5.png",
+      "dataSha": "6438f52250bc82aaf281fbc285a607b0cd4d15b2df9e342d328fadf4fd1b1381",
+      "direction": [
+        -1,
+        0.8,
+        1
+      ],
+      "blocks": 28,
+      "tags": [
+        "Neo"
+      ],
+      "camera": {
+        "position": [
+          -21.121163389266968,
+          25.123032211413577,
+          30.621163389266968
+        ],
+        "target": [
+          8,
+          1.8261014999999998,
+          1.5
+        ],
+        "span": 13.795653834110446,
+        "far": 141.94886985725014
+      }
+    },
+    "9078de5a": {
+      "name": "Close Fencepost Run",
+      "description": "Five fence posts, spaced two coordinate units apart.",
+      "file": "9078de5a-76744a218400-aa78b1f86e1c.png",
+      "blueprint": "9078de5a-blueprint-3608dfedc648.png",
+      "dataSha": "76744a2184002ae0bb1292eda35986815993f624b2dd998d6fc0fdc4914b1e55",
+      "direction": [
+        -1,
+        0.8,
+        1
+      ],
+      "blocks": 7,
+      "tags": [
+        "Fenceposts"
+      ],
+      "camera": {
+        "position": [
+          -19.061152508795693,
+          22.525023507036554,
+          26.061152508795693
+        ],
+        "target": [
+          6.5,
+          2.0761015,
+          0.5
+        ],
+        "span": 12.563184029944107,
+        "far": 124.59587078892781
+      }
+    },
+    "9debcf7f": {
+      "name": "Fencepost Neo",
+      "description": "A fence-wall crossing between isolated fence posts.",
+      "file": "9debcf7f-462fd1792f16-1cf8ed4a1153.png",
+      "blueprint": "9debcf7f-blueprint-6785bd586b79.png",
+      "dataSha": "462fd1792f16ee158fa4033b4c3917ab7e0ea2a7f15d4dab5ebf96e0859291be",
+      "direction": [
+        -1,
+        0.8,
+        1
+      ],
+      "blocks": 8,
+      "tags": [
+        "Neo"
+      ],
+      "camera": {
+        "position": [
+          -18.766683989651813,
+          21.913347191721453,
+          25.766683989651813
+        ],
+        "target": [
+          6.5,
+          1.7,
+          0.5
+        ],
+        "span": 11.79062779319133,
+        "far": 123.16050665383912
+      }
+    },
+    "a05f3bc0": {
+      "name": "Slime Rebound",
+      "description": "Deep lower pad followed by an elevated exit.",
+      "file": "a05f3bc0-7812caa3bea1-d8c021e76fe2.png",
+      "blueprint": "a05f3bc0-blueprint-ef6eec55b443.png",
+      "dataSha": "7812caa3bea14d45c30e7f7d393ed78e3162193705282e54465692b12dfd1d3e",
+      "direction": [
+        -1,
+        0.8,
+        -1
+      ],
+      "blocks": 4,
+      "tags": [
+        "Slime"
+      ],
+      "camera": {
+        "position": [
+          -23.038547728748867,
+          29.030838182999094,
+          -30.538547728748867
+        ],
+        "target": [
+          8,
+          4.2,
+          0.5
+        ],
+        "span": 18.158388448050758,
+        "far": 151.29501226348924
+      }
+    },
+    "b1b4d7bc": {
+      "name": "Neo Arc · Left",
+      "description": "Mirrored arc bending left from the entry toward the exit.",
+      "file": "b1b4d7bc-e082087f1121-13bda6eb21e2.png",
+      "blueprint": "b1b4d7bc-blueprint-c2b32c0058b0.png",
+      "dataSha": "e082087f112106ce14c0b09e3d3b8500b4a125e9e3f6a7b3b366cbf44c19612b",
+      "direction": [
+        -1,
+        0.8,
+        -1
+      ],
+      "blocks": 31,
+      "tags": [
+        "Neo"
+      ],
+      "camera": {
+        "position": [
+          -27.643518249359836,
+          33.94091609948787,
+          -38.143518249359836
+        ],
+        "target": [
+          12.5,
+          1.8261014999999998,
+          2
+        ],
+        "span": 18.2120039657065,
+        "far": 195.6764903730023
+      }
+    },
+    "b1e93c42": {
+      "name": "Ladder Wrap",
+      "description": "Ladders around a capped quartz pillar.",
+      "file": "b1e93c42-92499dca594f-0d492b5b319e.png",
+      "blueprint": "b1e93c42-blueprint-b5305311ee24.png",
+      "dataSha": "92499dca594fc64db95aee889cfcdd3d6819cb218423ca661acb1cefb6da7fc7",
+      "direction": [
+        -1,
+        0.8,
+        1
+      ],
+      "blocks": 10,
+      "tags": [
+        "Ladders"
+      ],
+      "camera": {
+        "position": [
+          -17.48906492333434,
+          20.317353438667475,
+          23.989064917746404
+        ],
+        "target": [
+          5,
+          2.3261015,
+          1.4999999944120646
+        ],
+        "span": 11.885325642856102,
+        "far": 109.62121627291178
+      }
+    },
+    "b951e6ec": {
+      "name": "Ice Run",
+      "description": "Three packed-ice pads in a straight chain.",
+      "file": "b951e6ec-022c280ce075-21d96fc24309.png",
+      "blueprint": "b951e6ec-blueprint-d7f25c04b803.png",
+      "dataSha": "022c280ce07597b24595be1aceef0a9e9e2b56d75b13850a5b6a1cb60e6a8cf7",
+      "direction": [
+        -1,
+        0.8,
+        1
+      ],
+      "blocks": 5,
+      "tags": [
+        "Ice"
+      ],
+      "camera": {
+        "position": [
+          -18.86094478138854,
+          22.114857325110833,
+          25.86094478138854
+        ],
+        "target": [
+          6.5,
+          1.8261014999999998,
+          0.5
+        ],
+        "span": 12.049654944874796,
+        "far": 123.61997362911146
+      }
+    },
+    "c086c587": {
+      "name": "Door Climb",
+      "description": "Single door on a pedestal with an elevated exit.",
+      "file": "c086c587-d042e3821fd6-e7408d189d43.png",
+      "blueprint": "c086c587-blueprint-7f202a5e34ca.png",
+      "dataSha": "d042e3821fd6932ed59ae52b352276bef6548cfc24e95c5dab8ab341b68a144f",
+      "direction": [
+        -1,
+        0.8,
+        -1
+      ],
+      "blocks": 5,
+      "tags": [
+        "Door climb"
+      ],
+      "camera": {
+        "position": [
+          -16.562969983576203,
+          18.876477486860963,
+          -19.562969983576203
+        ],
+        "target": [
+          3.5,
+          2.8261015,
+          0.5
+        ],
+        "span": 11.63883167681935,
+        "far": 97.79540319457894
+      }
+    },
+    "c27bbddb": {
+      "name": "Trapdoor Ridge",
+      "description": "Door pedestal topped by an upright trapdoor edge.",
+      "file": "c27bbddb-4213c40cd0e6-cd7be1881f3c.png",
+      "blueprint": "c27bbddb-blueprint-fbcba4059d4d.png",
+      "dataSha": "4213c40cd0e6546b373e3f13da84358eaa561c094eb88aae58ea1f3af44d7259",
+      "direction": [
+        -1,
+        0.8,
+        -1
+      ],
+      "blocks": 6,
+      "tags": [
+        "Door climb",
+        "Trapdoor"
+      ],
+      "camera": {
+        "position": [
+          -16.2335132807624,
+          18.28681062460992,
+          -20.2335132807624
+        ],
+        "target": [
+          4.5,
+          1.7,
+          0.5
+        ],
+        "span": 10.14733472096954,
+        "far": 101.06391489356606
+      }
+    },
+    "cf9b8e48": {
+      "name": "Slime Hop",
+      "description": "One level slime pad between entry and exit.",
+      "file": "cf9b8e48-432f23a93d81-75814b37c04f.png",
+      "blueprint": "cf9b8e48-blueprint-64ea7ecffe44.png",
+      "dataSha": "432f23a93d81a35e164387bb063d0b7cf8c5dccef08a0f812df9be73b17b0879",
+      "direction": [
+        -1,
+        0.8,
+        -1
+      ],
+      "blocks": 3,
+      "tags": [
+        "Slime"
+      ],
+      "camera": {
+        "position": [
+          -16.356866369549895,
+          18.511594595639917,
+          -20.356866369549895
+        ],
+        "target": [
+          4.5,
+          1.8261014999999998,
+          0.5
+        ],
+        "span": 10.40636187265301,
+        "far": 101.66519003195012
+      }
+    },
+    "d0e227d2": {
+      "name": "Close Ladder Catch",
+      "description": "Single ladder three coordinate units from the entry.",
+      "file": "d0e227d2-bf5e1459d369-3503857c6e24.png",
+      "blueprint": "d0e227d2-blueprint-c9f0cf4ea878.png",
+      "dataSha": "bf5e1459d369c1e8ec79e6a15b5282fccbe3f14dd74801322d6cfa929566e363",
+      "direction": [
+        -1,
+        0.8,
+        1
+      ],
+      "blocks": 6,
+      "tags": [
+        "Ladders"
+      ],
+      "camera": {
+        "position": [
+          -16.562969983576203,
+          18.876477486860963,
+          20.562969983576203
+        ],
+        "target": [
+          3.5,
+          2.8261015,
+          0.4999999999999999
+        ],
+        "span": 11.63883167681935,
+        "far": 97.79540319457894
+      }
+    },
+    "d7bc4762": {
+      "name": "Scaffold Circuit",
+      "description": "Scaffold climbs and slime drops across upper and lower branches.",
+      "file": "d7bc4762-a0f6c7a76882-812786f3db15.png",
+      "blueprint": "d7bc4762-blueprint-6154ff71bbf0.png",
+      "dataSha": "a0f6c7a76882cbf1f59edadbd5ec79e647ac749a6a8a979f8f4ad95daf33edc5",
+      "direction": [
+        -1,
+        0.8,
+        -1
+      ],
+      "blocks": 127,
+      "tags": [
+        "Slime",
+        "Scaffolding"
+      ],
+      "camera": {
+        "position": [
+          -31.163345466567577,
+          41.53067637325407,
+          -43.66334546656758
+        ],
+        "target": [
+          13,
+          6.2,
+          0.5
+        ],
+        "span": 26.374853809159696,
+        "far": 215.27082878856024
+      }
+    },
+    "dbef835e": {
+      "name": "Long Ladder Catch",
+      "description": "Single ladder four coordinate units from the entry.",
+      "file": "dbef835e-c2ed6034bfb8-a18077a92cce.png",
+      "blueprint": "dbef835e-blueprint-20e3c426b5a0.png",
+      "dataSha": "c2ed6034bfb8094b2b89164d81f79c01beb1eb5743bc65e07a90dc28c446ca75",
+      "direction": [
+        -1,
+        0.8,
+        1
+      ],
+      "blocks": 6,
+      "tags": [
+        "Ladders"
+      ],
+      "camera": {
+        "position": [
+          -17.02128975916777,
+          19.64313330733422,
+          21.52128975916777
+        ],
+        "target": [
+          4,
+          2.8261015,
+          0.4999999999999999
+        ],
+        "span": 12.0496549448748,
+        "far": 102.46665919107576
+      }
+    },
+    "dee7511a": {
+      "name": "Scaffold Slime Drop",
+      "description": "Scaffold climb above a low slime pad and raised exit.",
+      "file": "dee7511a-8901a314f274-8d70643d1085.png",
+      "blueprint": "dee7511a-blueprint-37539a58add9.png",
+      "dataSha": "8901a314f274dd63352f4aa0fc43ef2247bbb4a49f4d67be79843788d76d8647",
+      "direction": [
+        -1,
+        0.8,
+        -1
+      ],
+      "blocks": 8,
+      "tags": [
+        "Slime",
+        "Scaffolding"
+      ],
+      "camera": {
+        "position": [
+          -22.388864201744763,
+          27.911091361395812,
+          -27.888864201744763
+        ],
+        "target": [
+          6,
+          5.2,
+          0.5
+        ],
+        "span": 18.569211716106203,
+        "far": 138.37933382338167
+      }
+    },
+    "def6f9d9": {
+      "name": "Spaced Fencepost Run",
+      "description": "Five fence posts, spaced three coordinate units apart.",
+      "file": "def6f9d9-993d5d79c014-cfcb96b12279.png",
+      "blueprint": "def6f9d9-blueprint-8e126b5890d3.png",
+      "dataSha": "993d5d79c014e39154489e877641a36b645f2b3462d27c4fe724c774f123034b",
+      "direction": [
+        -1,
+        0.8,
+        1
+      ],
+      "blocks": 7,
+      "tags": [
+        "Fenceposts"
+      ],
+      "camera": {
+        "position": [
+          -23.048044728367508,
+          28.11453728269401,
+          33.04804472836751
+        ],
+        "target": [
+          9.5,
+          2.0761015,
+          0.5
+        ],
+        "span": 15.028123638276787,
+        "far": 158.65293922143996
+      }
+    },
+    "f714b766": {
+      "name": "Wide Neo Weave",
+      "description": "Three two-cell-wide walls and offset landings.",
+      "file": "f714b766-f265c6a6e5d2-059d3467fa78.png",
+      "blueprint": "f714b766-blueprint-328c8be63c43.png",
+      "dataSha": "f265c6a6e5d27286a7360573c440788c23a5f24ad2180d23d7d5969795dac179",
+      "direction": [
+        -1,
+        0.8,
+        1
+      ],
+      "blocks": 28,
+      "tags": [
+        "Neo"
+      ],
+      "camera": {
+        "position": [
+          -19.176371766327833,
+          22.367198913062268,
+          27.176371766327833
+        ],
+        "target": [
+          6.5,
+          1.8261014999999998,
+          1.5
+        ],
+        "span": 12.563184029944104,
+        "far": 125.15749819281467
+      }
+    },
+    "fce2a825": {
+      "name": "Ice Headhitter",
+      "description": "Continuous ice runway beneath a slab ceiling, then the exit.",
+      "file": "fce2a825-782a9f5572a4-0dc830c1b844.png",
+      "blueprint": "fce2a825-blueprint-8e66b82562a0.png",
+      "dataSha": "782a9f5572a46ad2cab0652e855a638b1710588fd9690af54841d3a91f48c28f",
+      "direction": [
+        -1,
+        1.25,
+        1
+      ],
+      "blocks": 14,
+      "tags": [
+        "Ice",
+        "Headhitter"
+      ],
+      "camera": {
+        "position": [
+          -17.167490665004507,
+          33.53436333125563,
+          26.167490665004507
+        ],
+        "target": [
+          8.5,
+          1.45,
+          0.5
+        ],
+        "span": 15.33977705640962,
+        "far": 145.33897866723115
+      }
+    }
+  },
+  "source": "IP-5.3.1.jar sha256 e3b24bb26d1afade0b62d922db684ea6e48d24971968d2c185f88b6c7aa56c96 (Efnilite/Walk-in-the-Park v5.3.1, GPL-3.0); byte-identical to the hub's plugins/IP/schematics on 2026-09-29",
+  "artwork": "https://piston-data.mojang.com/v1/objects/ba2df812c2d12e0219c489c4cd9a5e1f0760f5bd/client.jar",
+  "copyright": "Minecraft artwork and model data © Mojang AB / Microsoft. Not relicensed under the repository's code license.",
+  "reproduce": "node scripts/craft/render-minecraft-schematics.mjs"
+}

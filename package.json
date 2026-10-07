@@ -1,14 +1,19 @@
 {
   "name": "@kero-lab/mc-diorama",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Rem's Minecraft diorama: event-driven 3D live/replay view (RemHub, Rem Live).",
   "exports": {
     ".": "./src/index.ts",
     "./debug": "./src/debug/index.ts",
     "./assets/*": "./assets/*"
   },
-  "publishConfig": { "registry": "https://npm.pkg.github.com" },
-  "repository": { "type": "git", "url": "https://github.com/kero-lab/mc-diorama.git" },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kero-lab/mc-diorama.git"
+  },
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
@@ -26,6 +31,7 @@
     "@react-three/fiber": "9.5.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
+    "@types/node": "^26.6.4",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@types/three": "^0.182.0",

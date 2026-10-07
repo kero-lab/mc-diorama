@@ -83,11 +83,11 @@ describe('X-ray point arrays (fix round 1: drei Line rebuilds whenever points is
 describe('landing values (spec §4.6)', () => {
   it('landingValues lists the exact numbers of a landing, unknowns as a dash', () => {
     const j = synth.layers.parkour.jumps[1];
-    expect(landingValues(j, thinkingRows(synth)[1])).toEqual([
+    expect(landingValues(j, thinkingRows(synth)[1], true)).toEqual([
       ['Gap', '2'], ['Height', '0'], ['Offset', '0'], ['Block', 'lime_wool'], ['Margin', '0.050 b'], ['Entry speed', '0.300 b/tick'],
       ['Planner', '640 ms'], ['Waited', '4 ticks'], ['Corrected', 'no'],
     ]);
-    expect(landingValues({ ...j, predictedMargin: null, plannerMs: null, waitTicks: null }, undefined).filter(([, v]) => v === '–').map(([k]) => k)).toEqual(['Margin', 'Planner', 'Waited']);
+    expect(landingValues({ ...j, predictedMargin: null, plannerMs: null, waitTicks: null }, undefined, true).filter(([, v]) => v === '–').map(([k]) => k)).toEqual(['Margin', 'Planner', 'Waited']);
   });
 });
 

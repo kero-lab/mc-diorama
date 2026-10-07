@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { stateAt } from '../src/frame';
 import { bounds, goLive, initialPlayback, LIVE_DELAY_MS, seek, step } from '../src/playback';
+import type { Timeline } from '../src/types';
 import { emptyTimeline, timelineReducer } from '../src/timeline';
 import { syntheticRun, tAt } from './fixtures/rem-mc/synthetic-p8';
 
@@ -108,5 +109,28 @@ describe('shared render-frame continuity', () => {
     expect(after.sampledFrom).toEqual(reset.p);
     expect(after.rem?.p).toEqual(reset.p);
     expect(after.sampledFrom).not.toEqual(before.sampledFrom);
+  });
+});
+
+describe('rewind window', () => {
+  const tl = { ...emptyTimeline(), runId: 'w', startT: 0, lastT: 600_000, scores: [{ t: 0, score: 0 }], samples: [] } as Timeline;
+  it('bounds start at end − window', () => {
+    expect(bounds(tl, 120_000)).toEqual({ start: 480_000, end: 600_000 });
+    expect(bounds(tl, null)).toEqual(bounds(tl));
+  });
+  it('seek clamps to the window', () => {
+    const pb = seek({ T: 600_000, playing: false, speed: 1, live: true }, tl, 10_000, 120_000);
+    expect(pb.T).toBe(480_000);
+    expect(pb.live).toBe(false);
+  });
+  it('the floor moves under a paused viewer (Review Focus 3)', () => {
+    let pb = seek({ T: 600_000, playing: false, speed: 1, live: true }, tl, 500_000, 120_000);
+    const later = { ...tl, lastT: 610_000 } as Timeline;     // 10 s of new events: floor is now 490_000
+    pb = step(pb, later, 16, 1, 120_000);
+    expect(pb.T).toBe(500_000);                              // still inside: not dragged
+    const muchLater = { ...tl, lastT: 640_000 } as Timeline; // floor 520_000 passes her T
+    pb = step(pb, muchLater, 16, 1, 120_000);
+    expect(pb.T).toBe(520_000);                              // lands on the window's start, not on live
+    expect(pb.live).toBe(false);
   });
 });

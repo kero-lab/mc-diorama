@@ -1,11 +1,15 @@
 import type { Vec3T } from '../model';
 import type { FrameState } from '../frame';
 import type { Timeline } from '../types';
+import { customPose, sanitizeCustom, type CustomCameraParams } from './custom-camera';
 
-export type CameraId = 'iso' | 'top' | 'side' | 'shoulder' | 'first' | 'cinematic';
+export type CameraId = 'iso' | 'top' | 'side' | 'shoulder' | 'first' | 'cinematic' | 'custom';
 export interface CameraPose { position: Vec3T; target: Vec3T; up: Vec3T; projection: 'ortho' | 'persp'; zoom: number; fov: number; hideRem: boolean; cut: boolean }
 export interface CameraInput { frame: FrameState; tl: Timeline; rotation: 0 | 1 | 2 | 3; reducedMotion: boolean; viewport?: { width: number; height: number } }
-export interface CameraDef { id: CameraId; label: string; projection: 'ortho' | 'persp'; pose(i: CameraInput): CameraPose }
+export interface CameraDef { id: CameraId; label: string; projection: 'ortho' | 'persp'; pose(i: CameraInput, params?: CameraParams): CameraPose }
+export type CameraParams = { zoom?: number } | CustomCameraParams;
+export interface CameraPreset { name: string; camera: CameraId; params: CameraParams }
+const zoomOf = (p?: CameraParams) => (p && 'zoom' in p && p.zoom) || 1;
 
 const EYE = 1.62;
 const add = (a: Vec3T, b: Vec3T): Vec3T => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
@@ -38,17 +42,17 @@ export function framedZoom(viewport: CameraInput['viewport'], width: number, hei
 const ahead = (i: CameraInput): Vec3T => add(focusOf(i.frame), [i.frame.heading.x * 1.5, 0, i.frame.heading.z * 1.5]);
 
 export const CAMERAS: Record<CameraId, CameraDef> = {
-  iso: { id: 'iso', label: 'Isometric', projection: 'ortho', pose: i => {
+  iso: { id: 'iso', label: 'Isometric', projection: 'ortho', pose: (i, params) => {
     const a = Math.PI / 4 + i.rotation * (Math.PI / 2), c = ahead(i);
-    return ortho(add(c, [Math.cos(a) * 30, 30 * Math.SQRT1_2, Math.sin(a) * 30]), c, framedZoom(i.viewport, 14, 9, 32));
+    return ortho(add(c, [Math.cos(a) * 30, 30 * Math.SQRT1_2, Math.sin(a) * 30]), c, framedZoom(i.viewport, 14, 9, 32) * zoomOf(params));
   } },
-  top: { id: 'top', label: 'Top', projection: 'ortho', pose: i => {
+  top: { id: 'top', label: 'Top', projection: 'ortho', pose: (i, params) => {
     const c = ahead(i);
-    return ortho(add(c, [0, 50, 0]), c, framedZoom(i.viewport, 13, 12, 24), [i.frame.heading.x, 0, i.frame.heading.z]);     // the course runs up the screen
+    return ortho(add(c, [0, 50, 0]), c, framedZoom(i.viewport, 13, 12, 24) * zoomOf(params), [i.frame.heading.x, 0, i.frame.heading.z]);     // the course runs up the screen
   } },
-  side: { id: 'side', label: 'Side', projection: 'ortho', pose: i => {
+  side: { id: 'side', label: 'Side', projection: 'ortho', pose: (i, params) => {
     const c = ahead(i), h = i.frame.heading;
-    return ortho(add(c, mul([-h.z, 0, h.x], 40)), c, framedZoom(i.viewport, 16, 7, 36));
+    return ortho(add(c, mul([-h.z, 0, h.x], 40)), c, framedZoom(i.viewport, 16, 7, 36) * zoomOf(params));
   } },
   shoulder: { id: 'shoulder', label: 'Shoulder', projection: 'persp', pose: i => {
     const f = feet(i.frame), d = lookDir(yawOf(i.frame), 0);
@@ -60,10 +64,11 @@ export const CAMERAS: Record<CameraId, CameraDef> = {
   } },
   // The registry entry never cuts: only the CameraRig's director, which keeps DirectorState between frames, decides cuts.
   cinematic: { id: 'cinematic', label: 'Cinematic', projection: 'persp', pose: i => ({ ...direct(null, i).pose, cut: false }) },
+  custom: { id: 'custom', label: 'Custom', projection: 'persp', pose: (i, params) => customPose(i, sanitizeCustom(params)) },
 };
 export const CAMERA_IDS = Object.keys(CAMERAS) as CameraId[];
 /** The six built-in cameras, in picker order: the Diorama default. */
-export const BUILTIN_CAMERA_IDS: readonly CameraId[] = CAMERA_IDS;
+export const BUILTIN_CAMERA_IDS: readonly CameraId[] = ['iso', 'top', 'side', 'shoulder', 'first', 'cinematic'];
 
 export type Shot = 'follow' | 'establish' | 'landing' | 'death';
 export interface DirectorState { shot: Shot; since: number }
@@ -103,9 +108,9 @@ export function direct(prev: DirectorState | null, i: CameraInput): { state: Dir
 
 /** Damped camera motion (spec §4.3): framing never jumps with a sample. Half-life 250 ms; reduced motion 1200 ms and no
  *  cuts (a slow pan). A projection change (the viewer picked another camera) snaps. */
-export function dampPose(prev: CameraPose | null, next: CameraPose, dtMs: number, reducedMotion: boolean): CameraPose {
+export function dampPose(prev: CameraPose | null, next: CameraPose, dtMs: number, reducedMotion: boolean, halfLifeMs = 250): CameraPose {
   if (!prev || prev.projection !== next.projection || (next.cut && !reducedMotion)) return next;
-  const k = 1 - Math.pow(2, -dtMs / (reducedMotion ? 1200 : 250));
+  const k = 1 - Math.pow(2, -dtMs / (reducedMotion ? 1200 : Math.max(1, halfLifeMs)));
   const lerp = (a: Vec3T, b: Vec3T): Vec3T => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
   const u = lerp(prev.up, next.up), ul = Math.hypot(...u);
   return { ...next, position: lerp(prev.position, next.position), target: lerp(prev.target, next.target), up: ul > 1e-6 ? mul(u, 1 / ul) : next.up,

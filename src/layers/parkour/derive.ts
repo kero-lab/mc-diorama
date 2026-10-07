@@ -1,4 +1,4 @@
-import type { PlanHow, Vec3T } from '../../model';
+import type { DeathCause, PlanHow, Vec3T } from '../../model';
 import { commonMarkers, type LayerNames, type TimelineMarker } from '../../registry/layers';
 import type { JumpRec, PasteRec, PlanRec, Timeline } from '../../types';
 
@@ -67,7 +67,7 @@ export function thinkingRows(tl: Timeline): ThinkingRow[] {
 }
 const dash = (v: string | null) => v ?? '–';
 /** A landing's exact values for the landing list (spec §4.6); an unknown is a dash, never a guess. */
-export function landingValues(j: JumpRec, r: ThinkingRow | undefined, planner = true): [string, string][] {
+export function landingValues(j: JumpRec, r: ThinkingRow | undefined, planner = false): [string, string][] {
   const ms = j.plannerMs ?? r?.plannerMs ?? null;
   const all: [string, string][] = [
     ['Gap', String(j.gap)], ['Height', String(j.height)], ['Offset', String(j.offset)], ['Block', j.blockType],
@@ -91,8 +91,10 @@ export function sneakTicksAfter(tl: Timeline, tick: number): number | null {
   return k.at(-1)!.tick! - k[0].tick! + spacing;
 }
 
-const CAUSE: Record<string, string> = {
-  undershoot: 'fell short', overshoot: 'jumped past', side_miss: 'missed to the side', edge_collision: 'clipped an edge', stuck: 'stuck',
+/** Plain words per death cause: one vocabulary for timeline markers, death cards and the attempt summary. Typed over the
+ *  union, so a new cause fails typecheck until it is worded. */
+export const DEATH_CAUSE_WORDS: Record<DeathCause, string> = {
+  undershoot: 'fell short', overshoot: 'jumped past', side_miss: 'missed to the side', edge_collision: 'clipped an edge', stuck: 'stuck', no_solution: 'no jump found',
   sim_divergence: 'her model and the server disagreed', no_route: 'no route for this paste', route_no_solution: 'no jump found on the route',
   route_stuck: 'stuck on the route', route_missed: 'missed a route jump', route_fell: 'fell inside the paste',
 };
@@ -114,7 +116,7 @@ export function deathCard(tl: Timeline): string | null {
   }
   const where = typeof det.schematic === 'string' ? ` in ${det.schematic}${typeof det.waypoint === 'number' ? ` at waypoint ${det.waypoint}` : ''}` : '';
   const door = Array.isArray(det.door) ? `; the door at ${det.door.join(',')} never opened` : '';
-  return `${Object.hasOwn(CAUSE, d.cause) ? CAUSE[d.cause] : d.cause} at jump ${d.seq}${where}${door}`;
+  return `${Object.hasOwn(DEATH_CAUSE_WORDS, d.cause) ? DEATH_CAUSE_WORDS[d.cause] : d.cause} at jump ${d.seq}${where}${door}`;
 }
 
 /** Pastes, slow plans, late plans, corrections, the death, plus the markers every activity shares; sorted by time. */
@@ -137,7 +139,7 @@ export function publicParkourMarkers(tl: Timeline, names?: LayerNames): Timeline
   const d = tl.ended?.death;
   const out: TimelineMarker[] = [
     ...pasteMarkers(tl, names),
-    ...(d && tl.endT !== null ? [{ t: tl.endT, kind: 'death' as const, label: Object.hasOwn(CAUSE, d.cause) ? CAUSE[d.cause] : d.cause.replace(/_/g, ' ') }] : []),
+    ...(d && tl.endT !== null ? [{ t: tl.endT, kind: 'death' as const, label: Object.hasOwn(DEATH_CAUSE_WORDS, d.cause) ? DEATH_CAUSE_WORDS[d.cause] : d.cause.replace(/_/g, ' ') }] : []),
     ...commonMarkers(tl),
   ];
   return out.sort((a, b) => a.t - b.t);

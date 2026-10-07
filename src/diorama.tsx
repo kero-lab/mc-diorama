@@ -3,6 +3,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import { useReducedMotion } from './use-reduced-motion';
 import { useDioramaHost } from './host';
 import type { LiveFeed, TimelineSource } from './live-feed';
+import type { ActivityModule } from './activity';
 import { Controls } from './controls';
 import { stateAt } from './frame';
 import { PUBLIC_LAYERS } from './layers';
@@ -48,13 +49,15 @@ function statusLine(live: boolean, feed: LiveFeed | undefined, connected: boolea
 
 /** A run in 3D (spec §4): the live run (`{ live: true }` + the page's feed) or a stored one (`{ runId }`). `connected` is
  *  the live connection state (`live.connected && live.upstream`); ignored for a replay. */
-export function Diorama({ source, feed, connected = true, className, label = 'Run diorama', layers = PUBLIC_LAYERS, cameras = BUILTIN_CAMERA_IDS }: { source: TimelineSource; feed?: LiveFeed; connected?: boolean; className?: string; label?: string; layers?: Readonly<Record<string, LayerDef>>; cameras?: readonly CameraId[] }) {
+export function Diorama({ source, feed, connected = true, className, label = 'Run diorama', layers = PUBLIC_LAYERS, cameras = BUILTIN_CAMERA_IDS, seekToProgress, compact = false, rewindWindowMs = null }: { source: TimelineSource; feed?: LiveFeed; connected?: boolean; className?: string; label?: string; layers?: Readonly<Record<string, LayerDef>>; cameras?: readonly CameraId[]; seekToProgress?: { value: number; activity: ActivityModule }; compact?: boolean; rewindWindowMs?: number | null }) {
   const live = 'live' in source;
+  const win = live ? (rewindWindowMs ?? null) : null;   // the window clips the live run only, never a replay
+  const camIds = cameras.length ? cameras : BUILTIN_CAMERA_IDS;
   const host = useDioramaHost();
   const { tl, status, error } = useRunTimeline(source, feed);
   const reducedMotion = useReducedMotion();
   const [prefs, setPrefs] = useState<DioramaPrefs>(() => readPrefs(host.prefsKey));
-  const [pb, setPb] = useState<Playback>(() => initialPlayback(tl, live));
+  const [pb, setPb] = useState<Playback>(() => initialPlayback(tl, live, win));
   const [selected, setSelected] = useState<number | null>(null);
   const [webgl, setWebgl] = useState<boolean | null>(null);   // null until probed (after mount): render neither the canvas nor the fallback
   const timeScale = useRef(1);
@@ -79,7 +82,23 @@ export function Diorama({ source, feed, connected = true, className, label = 'Ru
     return () => document.removeEventListener('visibilitychange', visibility);
   }, []);
   // A replay starts from its beginning and plays once it is loaded.
-  useEffect(() => { if (!live && status === 'ready') updatePlayback(() => ({ ...initialPlayback(tlRef.current, false), playing: true })); }, [live, status, tl.runId, updatePlayback]);
+  useEffect(() => { if (!live && status === 'ready') updatePlayback(() => ({ ...initialPlayback(tlRef.current, false, win), playing: true })); }, [live, status, tl.runId, updatePlayback, win]);
+  // Side window: pause at the first moment the run's progress reaches `value`, and follow it when it changes.
+  const seekValue = seekToProgress?.value, seekActivity = seekToProgress?.activity;
+  useEffect(() => {
+    if (seekValue === undefined || !seekActivity || live || status !== 'ready') return;
+    const cur = tlRef.current, b = bounds(cur, win);
+    if (!b) return;
+    const hit = cur.scores.find(sc => sc.t >= b.start && seekActivity.progressAt(cur, sc.t) >= seekValue);
+    updatePlayback(p => ({ ...seek(p, cur, hit ? hit.t : b.end, win), playing: false }));
+  }, [seekValue, seekActivity, live, status, tl.runId, updatePlayback, win]);
+  // A windowed viewer who is paused (no rAF loop) is not stepped, so reconcile on new data: once the moving floor passes their T,
+  // they land on the window's start (not on live). Unwindowed: untouched.
+  useEffect(() => {
+    if (typeof win !== 'number') return;
+    const b = bounds(tl, win);
+    if (b && !clock.current.live && clock.current.T < b.start) updatePlayback(p => ({ ...p, T: b.start }));
+  }, [tl, win, updatePlayback]);
   // The clock: one step per animation frame while playing or live; nothing while paused or the page is hidden.
   useEffect(() => {
     if (!pb.playing && !pb.live) return;
@@ -88,7 +107,7 @@ export function Diorama({ source, feed, connected = true, className, label = 'Ru
       const dt = Math.min(100, now - last); last = now;
       if (!document.hidden) {
         const previous = clock.current;
-        const next = step(previous, tlRef.current, dt, timeScale.current);
+        const next = step(previous, tlRef.current, dt, timeScale.current, win);
         if (next !== previous) {
           clock.current = next;
           renderFrame.current = stateAt(tlRef.current, next.T);
@@ -104,17 +123,17 @@ export function Diorama({ source, feed, connected = true, className, label = 'Ru
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [pb.playing, pb.live]);
+  }, [pb.playing, pb.live, win]);
   const frame = useMemo(() => stateAt(tl, pb.T), [tl, pb.T]);
   // Handlers read the Timeline through tlRef, so they stay the same functions across frames (memoised children).
-  const onSeek = useCallback((T: number) => updatePlayback(p => ({ ...seek(p, tlRef.current, T), playing: false })), [updatePlayback]);
+  const onSeek = useCallback((T: number) => updatePlayback(p => ({ ...seek(p, tlRef.current, T, win), playing: false })), [updatePlayback, win]);
   const onPlay = useCallback((playing: boolean) => updatePlayback(p => {
-    const b = bounds(tlRef.current);
+    const b = bounds(tlRef.current, win);
     return playing && b && p.T >= b.end ? { ...p, live: false, playing, T: b.start } : { ...p, live: false, playing };   // Play at the end starts over
-  }), [updatePlayback]);
+  }), [updatePlayback, win]);
   const onSpeed = useCallback((speed: number) => updatePlayback(p => ({ ...p, speed })), [updatePlayback]);
-  const onLive = useCallback(() => updatePlayback(p => goLive(p, tlRef.current)), [updatePlayback]);
-  const camera = cameras.includes(prefs.camera) ? prefs.camera : cameras[0];   // a hidden camera is never the active one
+  const onLive = useCallback(() => updatePlayback(p => goLive(p, tlRef.current, win)), [updatePlayback, win]);
+  const camera = camIds.includes(prefs.camera) ? prefs.camera : camIds[0];   // a hidden camera is never the active one
   const layer = layerFor(tl.activity, layers);
   const xray = layer.xray && (prefs.xray || webgl === false);   // a layer set without X-ray ignores the pref
   // A capped open run is truncated while live but still folding: "cut short" (notice and marker) only once it is over.
@@ -126,16 +145,16 @@ export function Diorama({ source, feed, connected = true, className, label = 'Ru
   return (
     <section aria-label={label} data-status={status} data-connected={live ? String(connected) : undefined} className={className ?? 'space-y-3'}>
       <div className='relative aspect-[4/3] w-full overflow-hidden rounded-lg border bg-gradient-to-b from-zinc-100 to-zinc-200 dark:from-zinc-900 dark:to-zinc-950 sm:aspect-[16/9]'>
-        {shown && webgl && <Suspense fallback={canvasFallback}><DioramaCanvas tl={tl} frame={frame} camera={camera} rotation={prefs.rotation} xray={xray} reducedMotion={reducedMotion} layer={layer} selected={selected} active={visible && (pb.playing || pb.live) && !frame.atEnd} timeScale={timeScale} renderFrame={renderFrame} /></Suspense>}
-        {shown && webgl === false && <p className='absolute inset-0 grid place-items-center p-6 text-center text-sm text-muted-foreground'>3D view unavailable (WebGL is off in this browser). Every number is listed below.</p>}
+        {shown && webgl && <Suspense fallback={canvasFallback}><DioramaCanvas tl={tl} frame={frame} camera={camera} custom={prefs.custom} rotation={prefs.rotation} xray={xray} reducedMotion={reducedMotion} layer={layer} selected={selected} active={visible && (pb.playing || pb.live) && !frame.atEnd} timeScale={timeScale} renderFrame={renderFrame} /></Suspense>}
+        {shown && webgl === false && <p className='absolute inset-0 grid place-items-center p-6 text-center text-sm text-muted-foreground'>3D view unavailable (WebGL is off in this browser).{compact ? '' : ' Every number is listed below.'}</p>}
         {shown && <ShowOverlay tl={tl} frame={frame} />}
         {shown && <Overlay tl={tl} frame={frame} />}
         {line && <p role='status' className='absolute inset-x-0 bottom-0 bg-background/80 px-3 py-1.5 text-xs text-muted-foreground'>{line}</p>}
         {cutShort && <p role='status' className='absolute right-3 top-3 rounded bg-amber-500/90 px-2 py-0.5 text-xs text-black'>Recording ends early: it was cut short</p>}
       </div>
-      {shown && <Controls tl={tl} pb={pb} live={live} markers={markers} prefs={camera === prefs.camera ? prefs : { ...prefs, camera }} reducedMotion={reducedMotion}
-        cameras={cameras} canXray={layer.xray} onPrefs={setPrefs} onSeek={onSeek} onPlay={onPlay} onSpeed={onSpeed} onLive={onLive} />}
-      <Panels tl={tl} frame={frame} xray={xray} selected={selected} onSelect={setSelected} onSeek={onSeek} />
+      {shown && !compact && <Controls tl={tl} pb={pb} live={live} markers={markers} prefs={camera === prefs.camera ? prefs : { ...prefs, camera }} reducedMotion={reducedMotion}
+        cameras={camIds} rewindWindowMs={win} canXray={layer.xray} onPrefs={setPrefs} onSeek={onSeek} onPlay={onPlay} onSpeed={onSpeed} onLive={onLive} />}
+      {!compact && <Panels tl={tl} frame={frame} xray={xray} selected={selected} onSelect={setSelected} onSeek={onSeek} />}
     </section>
   );
 }

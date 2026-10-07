@@ -1,5 +1,5 @@
 'use client';
-import { Boxes, Map, PanelsTopLeft, Footprints, Eye, Clapperboard, Pause, Play, Radio, RotateCw, ScanEye } from 'lucide-react';
+import { Boxes, Map, PanelsTopLeft, Footprints, Eye, Clapperboard, Pause, Play, Radio, RotateCw, ScanEye, Crosshair } from 'lucide-react';
 import { memo, useMemo, useRef, type KeyboardEvent } from 'react';
 import { useDioramaHost } from './host';
 import { bounds, SPEEDS, type Playback } from './playback';
@@ -20,7 +20,7 @@ export function markerLeft(t: number, b: { start: number; end: number }): number
 const MARK: Record<TimelineMarker['kind'], string> = {
   paste: 'bg-lime-500', slow_plan: 'bg-sky-400', late_plan: 'bg-red-500', correction: 'bg-orange-400', death: 'bg-red-700', gap: 'bg-zinc-400', reset: 'bg-zinc-600', truncated: 'bg-amber-500', end: 'bg-foreground',
 };
-const CAMERA_ICONS = { iso: Boxes, top: Map, side: PanelsTopLeft, shoulder: Footprints, first: Eye, cinematic: Clapperboard };
+const CAMERA_ICONS = { iso: Boxes, top: Map, side: PanelsTopLeft, shoulder: Footprints, first: Eye, cinematic: Clapperboard, custom: Crosshair };
 const TOUCH = 'min-h-9 pointer-coarse:min-h-11';
 
 /** The markers above the scrubber, each a button that seeks. Memoised: they change only with the Timeline, while the
@@ -70,12 +70,12 @@ const ViewControls = memo(function ViewControls({ prefs, reducedMotion, onPrefs,
 });
 
 /** Play/pause, speed, Live, the clock, the scrubber with its markers, and the view controls (spec §4.6). */
-export function Controls({ tl, pb, live, markers, prefs, reducedMotion, onPrefs, onSeek, onPlay, onSpeed, onLive, cameras = BUILTIN_CAMERA_IDS, canXray }: {
-  tl: Timeline; pb: Playback; live: boolean; markers: TimelineMarker[]; prefs: DioramaPrefs; reducedMotion: boolean; cameras?: readonly CameraId[]; canXray: boolean;
+export function Controls({ tl, pb, live, markers, prefs, reducedMotion, onPrefs, onSeek, onPlay, onSpeed, onLive, cameras = BUILTIN_CAMERA_IDS, canXray, rewindWindowMs = null }: {
+  tl: Timeline; pb: Playback; live: boolean; markers: TimelineMarker[]; prefs: DioramaPrefs; reducedMotion: boolean; cameras?: readonly CameraId[]; canXray: boolean; rewindWindowMs?: number | null;
   onPrefs(p: DioramaPrefs): void; onSeek(T: number): void; onPlay(playing: boolean): void; onSpeed(s: number): void; onLive(): void;
 }) {
   const { Button } = useDioramaHost();
-  const b = useMemo(() => bounds(tl), [tl]);
+  const b = useMemo(() => bounds(tl, rewindWindowMs), [tl, rewindWindowMs]);
   if (!b) return null;
   return (
     <div className='grid min-w-0 gap-2'>
@@ -89,6 +89,7 @@ export function Controls({ tl, pb, live, markers, prefs, reducedMotion, onPrefs,
           </select>
         </label>
         {live && <Button size='sm' variant={pb.live ? 'secondary' : 'default'} className={TOUCH} disabled={pb.live} onClick={onLive}><Radio className='mr-1 size-4' />{pb.live ? 'Live' : 'Back to live'}</Button>}
+        {live && !pb.live && rewindWindowMs !== null && rewindWindowMs !== undefined && <span aria-label={`${formatClock(b.end - pb.T)} behind live`} className='tabular-nums text-xs text-muted-foreground'>−{formatClock(b.end - pb.T)}</span>}
         <span className='ml-auto text-xs tabular-nums text-muted-foreground'>{formatClock(pb.T - b.start)} / {formatClock(b.end - b.start)}</span>
       </div>
       <div className='relative pt-3'>

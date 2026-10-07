@@ -70,3 +70,33 @@ describe('OrbitSurface browser integration', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 });
+
+describe('review fixes', () => {
+  it('wheel zoom scales by delta: tiny trackpad deltas are tiny, huge ones clamp at 3 steps, line mode is scaled', () => {
+    const onChange = vi.fn();
+    render(<OrbitSurface value={DEFAULT_CUSTOM} onChange={onChange} />);
+    const s = screen.getByRole('application', { name: /camera/i });
+    fireEvent.wheel(s, { deltaY: 4 });
+    expect(onChange.mock.calls.at(-1)![0].distance).toBeCloseTo(DEFAULT_CUSTOM.distance * 1.15 ** 0.04, 5);
+    fireEvent.wheel(s, { deltaY: 10000 });
+    expect(onChange.mock.calls.at(-1)![0].distance).toBeCloseTo(DEFAULT_CUSTOM.distance * 1.15 ** 3, 5);
+    fireEvent.wheel(s, { deltaY: -10000 });
+    expect(onChange.mock.calls.at(-1)![0].distance).toBeCloseTo(DEFAULT_CUSTOM.distance * 1.15 ** -3, 5);
+    fireEvent.wheel(s, { deltaY: 3, deltaMode: 1 });
+    expect(onChange.mock.calls.at(-1)![0].distance).toBeCloseTo(DEFAULT_CUSTOM.distance * 1.15 ** 0.99, 5);
+  });
+
+  it('orbit wraps yaw into [-pi, pi] without changing the direction', () => {
+    const o = orbit(DEFAULT_CUSTOM, { dx: (10 * Math.PI) / 0.01 });
+    expect(o.yaw).toBeGreaterThanOrEqual(-Math.PI); expect(o.yaw).toBeLessThanOrEqual(Math.PI);
+    const raw = DEFAULT_CUSTOM.yaw + 10 * Math.PI;
+    expect(Math.cos(o.yaw)).toBeCloseTo(Math.cos(raw), 6); expect(Math.sin(o.yaw)).toBeCloseTo(Math.sin(raw), 6);
+  });
+
+  it('the panel offers "Fixed point" only when a world point is set', () => {
+    const { rerender } = render(<CustomCameraPanel value={DEFAULT_CUSTOM} onChange={vi.fn()} />);
+    expect(screen.queryByRole('option', { name: /fixed point/i })).toBeNull();
+    rerender(<CustomCameraPanel value={{ ...DEFAULT_CUSTOM, anchor: 'world', world: [1, 2, 3] }} onChange={vi.fn()} />);
+    expect(screen.getByRole('option', { name: /fixed point/i })).toBeInTheDocument();
+  });
+});

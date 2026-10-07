@@ -87,7 +87,7 @@ Controlled view: `camera` / `onCameraChange` and `customParams` / `onCustomParam
   onFrame={f => setBehind(f.behindMs)} />
 ```
 
-Custom camera editing: `CustomCameraPanel` edits the `CustomCameraParams` (ranges in `CUSTOM_LIMITS`). While the custom camera is active and `onCustomParamsChange` is set, the stage also takes drag (yaw/pitch), wheel (distance) and keyboard control; `orbit()` is the pure step behind it.
+Custom camera editing: `CustomCameraPanel` edits the `CustomCameraParams` (ranges in `CUSTOM_LIMITS`). While the custom camera is active and `onCustomParamsChange` is set, the stage also takes drag (yaw/pitch), wheel (distance) and keyboard control; `orbit()` is the pure step behind it. Keep `customParams` in state: an inline object literal is a new value every render and re-renders the canvas each time.
 
 ```tsx
 <CustomCameraPanel value={params} onChange={setParams} />

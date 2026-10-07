@@ -12,6 +12,7 @@ export const DEFAULT_CUSTOM: CustomCameraParams = {
 export const CUSTOM_LIMITS = { pitch: [-1.5, 1.5], distance: [2, 80], height: [-10, 40], fov: [20, 110], smoothing: [0, 3000], lookAhead: [0, 20] } as const;
 const num = (v: unknown, d: number, [lo, hi]: readonly [number, number] = [-Infinity, Infinity]) =>
   typeof v === 'number' && Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : d;
+const wrapAngle = (a: number) => a - 2 * Math.PI * Math.round(a / (2 * Math.PI));
 const vec = (v: unknown): Vec3T | undefined => Array.isArray(v) && v.length === 3 && v.every(x => typeof x === 'number' && Number.isFinite(x)) ? [v[0], v[1], v[2]] : undefined;
 
 /** A stored preset may be stale or edited by hand: every field is clamped or defaulted (Review Focus 4). */
@@ -20,7 +21,7 @@ export function sanitizeCustom(v: unknown): CustomCameraParams {
   const d = DEFAULT_CUSTOM;
   return {
     anchor: o.anchor === 'world' || o.anchor === 'next_jump' ? o.anchor : 'rem',
-    yaw: num(o.yaw, d.yaw), pitch: num(o.pitch, d.pitch, CUSTOM_LIMITS.pitch), distance: num(o.distance, d.distance, CUSTOM_LIMITS.distance),
+    yaw: wrapAngle(num(o.yaw, d.yaw)), pitch: num(o.pitch, d.pitch, CUSTOM_LIMITS.pitch), distance: num(o.distance, d.distance, CUSTOM_LIMITS.distance),
     height: num(o.height, d.height, CUSTOM_LIMITS.height), fov: num(o.fov, d.fov, CUSTOM_LIMITS.fov), smoothing: num(o.smoothing, d.smoothing, CUSTOM_LIMITS.smoothing),
     lookAhead: num(o.lookAhead, d.lookAhead, CUSTOM_LIMITS.lookAhead), lockRoll: typeof o.lockRoll === 'boolean' ? o.lockRoll : d.lockRoll,
     projection: o.projection === 'ortho' ? 'ortho' : 'persp', ...(vec(o.world) ? { world: vec(o.world) } : {}),

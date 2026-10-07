@@ -1,7 +1,13 @@
+'use client';
 import { useEffect, useRef, type KeyboardEvent, type PointerEvent } from 'react';
 import { orbit, type CustomCameraParams } from './registry/custom-camera';
 
 const KEY_STEP_PX = 10;
+/** Wheel events arrive in pixels, lines or pages; 100 px is one zoom step, and one event never moves more than 3 (trackpad pinch fires many). */
+const wheelSteps = (e: WheelEvent) => {
+  const px = e.deltaMode === 1 ? e.deltaY * 33 : e.deltaMode === 2 ? e.deltaY * 800 : e.deltaY;
+  return Math.max(-3, Math.min(3, px / 100));
+};
 /** A transparent layer over the 3D view while the custom camera is active: drag to orbit, wheel to zoom, keys for both. */
 export function OrbitSurface({ value, onChange }: { value: CustomCameraParams; onChange(p: CustomCameraParams): void }) {
   const drag = useRef<{ id: number; x: number; y: number; base: CustomCameraParams } | null>(null);
@@ -17,7 +23,7 @@ export function OrbitSurface({ value, onChange }: { value: CustomCameraParams; o
   latest.current = { value, onChange };
   useEffect(() => {
     const node = el.current; if (!node) return;
-    const onWheel = (e: WheelEvent) => { e.preventDefault(); latest.current.onChange(orbit(latest.current.value, { zoomSteps: Math.sign(e.deltaY) })); };
+    const onWheel = (e: WheelEvent) => { e.preventDefault(); latest.current.onChange(orbit(latest.current.value, { zoomSteps: wheelSteps(e) })); };
     node.addEventListener('wheel', onWheel, { passive: false });
     return () => node.removeEventListener('wheel', onWheel);
   }, []);

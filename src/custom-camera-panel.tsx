@@ -1,3 +1,4 @@
+'use client';
 import type { ReactNode } from 'react';
 import { CUSTOM_LIMITS, sanitizeCustom, type CustomCameraParams } from './registry/custom-camera';
 
@@ -23,7 +24,7 @@ export function CustomCameraPanel({ value, onChange, className }: { value: Custo
     <div className={`grid gap-3 text-sm${className ? ` ${className}` : ''}`}>
       <Row label='Anchor'>
         <select value={value.anchor} onChange={e => set({ anchor: e.target.value as CustomCameraParams['anchor'] })}>
-          <option value='rem'>Follow Rem</option><option value='next_jump'>Next jump</option><option value='world'>Fixed point</option>
+          <option value='rem'>Follow Rem</option><option value='next_jump'>Next jump</option>{value.world && <option value='world'>Fixed point</option>}
         </select>
       </Row>
       {NUMERIC.map(({ field, label, range, step }) => (

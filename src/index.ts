@@ -24,6 +24,7 @@ export * from './scene/door-motion';
 export * from './scene/player-skin';
 export * from './scene/player-motion';
 export * from './scene/vanilla-material';
+export { CustomCameraPanel } from './custom-camera-panel';
 export { Diorama, hasWebGL } from './diorama';
 export type { DioramaProps, DioramaFrameInfo } from './diorama';
 export { Controls, formatClock, markerLeft } from './controls';

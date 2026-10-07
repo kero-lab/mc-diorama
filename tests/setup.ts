@@ -44,3 +44,12 @@ if (typeof window !== 'undefined' && !window.matchMedia) {
     addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {}, dispatchEvent() { return false; },
   }) });
 }
+
+// jsdom has no PointerEvent: fireEvent would fall back to a plain Event and drop clientX/pointerId.
+if (typeof window !== 'undefined' && !('PointerEvent' in window)) {
+  class PointerEventPolyfill extends MouseEvent {
+    pointerId: number;
+    constructor(type: string, init: PointerEventInit = {}) { super(type, init); this.pointerId = init.pointerId ?? 0; }
+  }
+  Object.defineProperty(window, 'PointerEvent', { value: PointerEventPolyfill, configurable: true });
+}

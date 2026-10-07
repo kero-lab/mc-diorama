@@ -15,6 +15,7 @@ import { layerFor, type LayerDef } from './registry/layers';
 import type { FrameState } from './frame';
 import type { Timeline } from './types';
 import { ShowOverlay } from './show-overlay';
+import { OrbitSurface } from './orbit-surface';
 import { useRunTimeline, type TimelineStatus } from './use-run-timeline';
 
 const DioramaCanvas = lazy(() => import('./canvas'));
@@ -183,6 +184,7 @@ export function Diorama({ source, feed, connected = true, className, label = 'Ru
       <div className='relative aspect-[4/3] w-full overflow-hidden rounded-lg border bg-gradient-to-b from-zinc-100 to-zinc-200 dark:from-zinc-900 dark:to-zinc-950 sm:aspect-[16/9]'>
         {shown && webgl && <Suspense fallback={canvasFallback}><DioramaCanvas tl={tl} frame={frame} camera={camera} custom={custom} rotation={prefs.rotation} xray={xray} reducedMotion={reducedMotion} layer={layer} selected={selected} active={visible && (pb.playing || pb.live) && !frame.atEnd} timeScale={timeScale} renderFrame={renderFrame} /></Suspense>}
         {shown && webgl === false && <p className='absolute inset-0 grid place-items-center p-6 text-center text-sm text-muted-foreground'>3D view unavailable (WebGL is off in this browser).{compact ? '' : ' Every number is listed below.'}</p>}
+        {shown && webgl && camera === 'custom' && onCustomParamsChange && <OrbitSurface value={custom} onChange={onCustomParamsChange} />}
         {shown && <ShowOverlay tl={tl} frame={frame} />}
         {shown && <Overlay tl={tl} frame={frame} />}
         {line && <p role='status' className='absolute inset-x-0 bottom-0 bg-background/80 px-3 py-1.5 text-xs text-muted-foreground'>{line}</p>}

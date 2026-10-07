@@ -67,9 +67,9 @@ export function thinkingRows(tl: Timeline): ThinkingRow[] {
 }
 const dash = (v: string | null) => v ?? '–';
 /** A landing's exact values for the landing list (spec §4.6); an unknown is a dash, never a guess. */
-export function landingValues(j: JumpRec, r: ThinkingRow | undefined): [string, string][] {
+export function landingValues(j: JumpRec, r: ThinkingRow | undefined, planner = true): [string, string][] {
   const ms = j.plannerMs ?? r?.plannerMs ?? null;
-  return [
+  const all: [string, string][] = [
     ['Gap', String(j.gap)], ['Height', String(j.height)], ['Offset', String(j.offset)], ['Block', j.blockType],
     ['Margin', dash(j.predictedMargin === null ? null : `${j.predictedMargin.toFixed(3)} b`)],
     ['Entry speed', `${j.entrySpeed.toFixed(3)} b/tick`],
@@ -77,6 +77,7 @@ export function landingValues(j: JumpRec, r: ThinkingRow | undefined): [string, 
     ['Waited', dash(j.waitTicks === null ? null : ticks(j.waitTicks))],
     ['Corrected', j.corrected ? 'yes' : 'no'],
   ];
+  return planner ? all : all.filter(([k]) => k !== 'Planner' && k !== 'Waited');   // public build: no planner internals (spec §3.1)
 }
 export function marginBand(m: number | null): MarginBand { return m === null ? 'none' : m >= 0.3 ? 'green' : m >= 0.1 ? 'amber' : 'red'; }
 
@@ -125,6 +126,18 @@ export function parkourMarkers(tl: Timeline, names?: LayerNames): TimelineMarker
     ...thinkingRows(tl).filter(r => r.late).map(r => ({ t: r.t, kind: 'late_plan' as const, label: `late plan for jump ${r.seq}: ready at tick ${r.readyTick}` })),
     ...k.corrections.map(c => ({ t: c.t, kind: 'correction' as const, label: c.predicted ? `server correction ${Math.hypot(c.server[0] - c.predicted[0], c.server[1] - c.predicted[1], c.server[2] - c.predicted[2]).toFixed(2)} b` : 'server correction' })),
     ...(tl.ended?.death && tl.endT !== null ? [{ t: tl.endT, kind: 'death' as const, label: deathCard(tl) ?? tl.ended.death.cause }] : []),
+    ...commonMarkers(tl),
+  ];
+  return out.sort((a, b) => a.t - b.t);
+}
+
+/** Public timeline markers (spec §3.1): pastes, the death by cause only, and the shared ones. No planner timings, late plans or
+ *  correction distances; those are X-ray (parkourMarkers). */
+export function publicParkourMarkers(tl: Timeline, names?: LayerNames): TimelineMarker[] {
+  const d = tl.ended?.death;
+  const out: TimelineMarker[] = [
+    ...pasteMarkers(tl, names),
+    ...(d && tl.endT !== null ? [{ t: tl.endT, kind: 'death' as const, label: Object.hasOwn(CAUSE, d.cause) ? CAUSE[d.cause] : d.cause.replace(/_/g, ' ') }] : []),
     ...commonMarkers(tl),
   ];
   return out.sort((a, b) => a.t - b.t);

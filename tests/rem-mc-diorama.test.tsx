@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { formatClock, markerLeft } from '../src/controls';
 import { Diorama, hasWebGL } from '../src/diorama';
 import { lastChangeBefore } from '../src/frame';
-import { moveKindOf } from '../src/layers/parkour/derive';
+import { moveKindOf, parkourMarkers, publicParkourMarkers } from '../src/layers/parkour/derive';
 import { visibleBlocks } from '../src/scene/blocks-field';
 import { emptyTimeline, timelineReducer } from '../src/timeline';
 import type { PasteRec, WorldBlock } from '../src/types';
@@ -180,7 +180,7 @@ describe('controls', () => {
   });
   it('the landing list selects a landing (kept while playing) and shows its exact values', async () => {
     respond(200, syntheticRun());
-    render(hosted(<Diorama source={{ runId: 'r1' }} />));
+    render(hosted(<Diorama source={{ runId: 'r1' }} layers={DEBUG_LAYERS} />));
     const item = await screen.findByRole('button', { name: /landing 2/i });
     fireEvent.click(item);
     expect(item).toHaveAttribute('aria-pressed', 'true');
@@ -214,5 +214,30 @@ describe('public layers (no X-ray)', () => {
     render(hosted(<Diorama source={{ runId: 'r1' }} cameras={['iso', 'top']} />));
     await screen.findByRole('radiogroup', { name: /camera/i });
     expect(screen.getAllByRole('radio')).toHaveLength(2);
+  });
+  it('the public landing list shows no planner ms or waited values; Margin stays', async () => {
+    respond(200, syntheticRun());
+    render(hosted(<Diorama source={{ runId: 'r1' }} />));
+    fireEvent.click(await screen.findByRole('button', { name: /landing 2/i }));
+    const values = screen.getByRole('group', { name: /landing 2 values/i });
+    expect(values).toHaveTextContent('0.050 b');
+    expect(values).not.toHaveTextContent('640 ms');
+    expect(values).not.toHaveTextContent(/planner|waited/i);
+  });
+  it('public timeline markers carry no planner internals; the death marker is cause only', () => {
+    const full = parkourMarkers(tl), pub = publicParkourMarkers(tl);
+    expect(full.some(m => /slow plan|late plan|server correction/.test(m.label))).toBe(true);   // control: the debug set has them
+    expect(pub.some(m => /slow plan|late plan|correction/i.test(m.label))).toBe(false);
+    expect(pub.some(m => m.kind === 'slow_plan' || m.kind === 'late_plan' || m.kind === 'correction')).toBe(false);
+    const death = pub.find(m => m.kind === 'death')!;
+    expect(death.label).toBe('no solution');
+    expect(death.label).not.toMatch(/tick|plan for|→/);
+    expect(full.find(m => m.kind === 'death')!.label).toMatch(/plan for/);
+  });
+  it('a stored camera outside the cameras prop falls back to the first one (a radio is checked)', async () => {
+    localStorage.setItem('remhub:rem-mc:diorama', JSON.stringify({ camera: 'cinematic', xray: false, rotation: 0 }));
+    respond(200, syntheticRun());
+    render(hosted(<Diorama source={{ runId: 'r1' }} cameras={['iso', 'top']} />));
+    expect(await screen.findByRole('radio', { name: /isometric/i })).toHaveAttribute('aria-checked', 'true');
   });
 });

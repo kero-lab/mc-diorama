@@ -7,7 +7,7 @@ import { landingValues, thinkingRows, type ThinkingRow } from './derive';
 
 /** Every landing as a button (spec §4.6): the keyboard and touch way to each one, with its exact values beside the list.
  *  Shown always, X-ray or not. Memoised like the strip: nothing here changes with the clock, and selection survives playback. */
-const LandingList = memo(function LandingList({ tl, rows, selected, onSelect, onSeek }: Pick<LayerPanelProps, 'tl' | 'selected' | 'onSelect' | 'onSeek'> & { rows: ThinkingRow[] }) {
+const LandingList = memo(function LandingList({ tl, rows, selected, onSelect, onSeek, planner }: Pick<LayerPanelProps, 'tl' | 'selected' | 'onSelect' | 'onSeek'> & { rows: ThinkingRow[]; planner: boolean }) {
   const jumps = tl.layers.parkour.jumps;
   const sel = jumps.find(j => j.seq === selected);
   if (jumps.length === 0) return null;
@@ -26,7 +26,7 @@ const LandingList = memo(function LandingList({ tl, rows, selected, onSelect, on
       </ol></div>
       {sel ? (
         <dl role='group' aria-label={`landing ${sel.seq} values`} className='grid grid-cols-2 content-start gap-x-3 gap-y-1 rounded-md border p-2 text-xs'>
-          {landingValues(sel, rows.find(r => r.seq === sel.seq)).map(([k, v]) => (
+          {landingValues(sel, rows.find(r => r.seq === sel.seq), planner).map(([k, v]) => (
             <div key={k} className='contents'><dt className='text-muted-foreground'>{k}</dt><dd className='text-right font-medium tabular-nums'>{(() => { const match = v.match(/^(.*?)( b\/tick| ms| ticks?| b)$/); return match ? <>{match[1]}<span className='font-normal text-muted-foreground'>{match[2]}</span></> : v; })()}</dd></div>
           ))}
         </dl>
@@ -41,7 +41,7 @@ export function ParkourPanels({ tl, selected, onSelect, onSeek }: LayerPanelProp
   const rows = useMemo(() => thinkingRows(tl), [tl]);
   return (
     <div className='grid min-w-0 gap-3'>
-      <LandingList tl={tl} rows={rows} selected={selected} onSelect={onSelect} onSeek={onSeek} />
+      <LandingList planner={false} tl={tl} rows={rows} selected={selected} onSelect={onSelect} onSeek={onSeek} />
     </div>
   );
 }

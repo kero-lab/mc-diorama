@@ -9,6 +9,6 @@ export function recordingResponse(status: number, body: unknown = null, headers:
     if (status !== 200) throw new Error((body as { error?: string } | null)?.error ?? `HTTP ${status}`);
     const h = (k: string) => headers[k] ?? null;
     const lastId = h('x-recording-last-id');
-    return { events: body as unknown[], truncated: h('x-recording-truncated') === 'true', version: Number(h('x-recording-version') ?? 1), lastId: lastId === null ? null : Number(lastId), runId: h('x-recording-run') };
+    return { events: body as unknown[], truncated: h('x-recording-truncated') === 'true', version: Number(h('x-recording-version')) || null, lastId: lastId !== null && Number.isFinite(Number(lastId)) && Number(lastId) > 0 ? Number(lastId) : null, runId: h('x-recording-run') };
   };
 }

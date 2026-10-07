@@ -70,12 +70,12 @@ const ViewControls = memo(function ViewControls({ prefs, reducedMotion, onPrefs,
 });
 
 /** Play/pause, speed, Live, the clock, the scrubber with its markers, and the view controls (spec §4.6). */
-export function Controls({ tl, pb, live, markers, prefs, reducedMotion, onPrefs, onSeek, onPlay, onSpeed, onLive, cameras = BUILTIN_CAMERA_IDS, canXray }: {
-  tl: Timeline; pb: Playback; live: boolean; markers: TimelineMarker[]; prefs: DioramaPrefs; reducedMotion: boolean; cameras?: readonly CameraId[]; canXray: boolean;
+export function Controls({ tl, pb, live, markers, prefs, reducedMotion, onPrefs, onSeek, onPlay, onSpeed, onLive, cameras = BUILTIN_CAMERA_IDS, canXray, rewindWindowMs = null }: {
+  tl: Timeline; pb: Playback; live: boolean; markers: TimelineMarker[]; prefs: DioramaPrefs; reducedMotion: boolean; cameras?: readonly CameraId[]; canXray: boolean; rewindWindowMs?: number | null;
   onPrefs(p: DioramaPrefs): void; onSeek(T: number): void; onPlay(playing: boolean): void; onSpeed(s: number): void; onLive(): void;
 }) {
   const { Button } = useDioramaHost();
-  const b = useMemo(() => bounds(tl), [tl]);
+  const b = useMemo(() => bounds(tl, rewindWindowMs), [tl, rewindWindowMs]);
   if (!b) return null;
   return (
     <div className='grid min-w-0 gap-2'>
@@ -89,6 +89,7 @@ export function Controls({ tl, pb, live, markers, prefs, reducedMotion, onPrefs,
           </select>
         </label>
         {live && <Button size='sm' variant={pb.live ? 'secondary' : 'default'} className={TOUCH} disabled={pb.live} onClick={onLive}><Radio className='mr-1 size-4' />{pb.live ? 'Live' : 'Back to live'}</Button>}
+        {live && !pb.live && <span className='tabular-nums text-xs text-muted-foreground'>−{formatClock(b.end - pb.T)}</span>}
         <span className='ml-auto text-xs tabular-nums text-muted-foreground'>{formatClock(pb.T - b.start)} / {formatClock(b.end - b.start)}</span>
       </div>
       <div className='relative pt-3'>

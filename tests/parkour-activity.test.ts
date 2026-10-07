@@ -35,12 +35,14 @@ describe('parkour activity module', () => {
   it('attempt: ended in plain words once the run ends, null while running', () => {
     expect(PARKOUR_ACTIVITY.attempt(tl, stateAt(tl, tl.startT! + 1000)).ended).toBeNull();
     const a = PARKOUR_ACTIVITY.attempt(tl, stateAt(tl, end));
-    if (tl.ended) expect(typeof a.ended).toBe('string');
+    expect(tl.ended).not.toBeNull();   // the fixture ends in a death: the assertion below must really run
+    expect(typeof a.ended).toBe('string');
     expect(a.score).toBe(stateAt(tl, end).score);
   });
   it('a death is worded by the same cause map the timeline markers use', () => {
     const a = PARKOUR_ACTIVITY.attempt(tl, stateAt(tl, end));
-    if (tl.ended?.death) expect(a.ended).toBe(DEATH_CAUSE_WORDS[tl.ended.death.cause]);
+    expect(tl.ended?.death).toBeTruthy();
+    expect(a.ended).toBe(DEATH_CAUSE_WORDS[tl.ended!.death!.cause]);
   });
   it('progressAt is the score at T', () => {
     expect(PARKOUR_ACTIVITY.progressAt(tl, end)).toBe(stateAt(tl, end).score);

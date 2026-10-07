@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { formatClock, markerLeft } from '../src/controls';
+import { PARKOUR_ACTIVITY } from '../src/activity';
 import { Diorama, hasWebGL } from '../src/diorama';
 import { lastChangeBefore } from '../src/frame';
 import { moveKindOf, parkourMarkers, publicParkourMarkers } from '../src/layers/parkour/derive';
@@ -51,6 +52,13 @@ describe('Diorama shell (no WebGL in jsdom: the DOM fallback)', () => {
     await waitFor(() => expect(region()).toHaveAttribute('data-status', 'ready'));
     expect(screen.getByText(/3D view unavailable/i)).toBeInTheDocument();
     expect(screen.getByTestId('diorama-score').textContent).toMatch(/^\d+$/);
+  });
+  it('seekToProgress pauses the replay at the first moment the progress is reached (compact hides the controls)', async () => {
+    respond(200, syntheticRun());
+    render(hosted(<Diorama source={{ runId: 'r1' }} seekToProgress={{ value: 2, activity: PARKOUR_ACTIVITY }} compact />));
+    await waitFor(() => expect(region()).toHaveAttribute('data-status', 'ready'));
+    await waitFor(() => expect(screen.getByTestId('diorama-score').textContent).toBe('2'));
+    expect(screen.queryByRole('slider')).toBeNull();
   });
   it('a truncated recording says it was cut short', async () => {
     respond(200, syntheticRun().slice(0, 30), { 'x-recording-truncated': 'true' });

@@ -3,6 +3,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import { useReducedMotion } from './use-reduced-motion';
 import { useDioramaHost } from './host';
 import type { LiveFeed, TimelineSource } from './live-feed';
+import type { ActivityModule } from './activity';
 import { Controls } from './controls';
 import { stateAt } from './frame';
 import { PUBLIC_LAYERS } from './layers';
@@ -48,7 +49,7 @@ function statusLine(live: boolean, feed: LiveFeed | undefined, connected: boolea
 
 /** A run in 3D (spec §4): the live run (`{ live: true }` + the page's feed) or a stored one (`{ runId }`). `connected` is
  *  the live connection state (`live.connected && live.upstream`); ignored for a replay. */
-export function Diorama({ source, feed, connected = true, className, label = 'Run diorama', layers = PUBLIC_LAYERS, cameras = BUILTIN_CAMERA_IDS }: { source: TimelineSource; feed?: LiveFeed; connected?: boolean; className?: string; label?: string; layers?: Readonly<Record<string, LayerDef>>; cameras?: readonly CameraId[] }) {
+export function Diorama({ source, feed, connected = true, className, label = 'Run diorama', layers = PUBLIC_LAYERS, cameras = BUILTIN_CAMERA_IDS, seekToProgress, compact = false }: { source: TimelineSource; feed?: LiveFeed; connected?: boolean; className?: string; label?: string; layers?: Readonly<Record<string, LayerDef>>; cameras?: readonly CameraId[]; seekToProgress?: { value: number; activity: ActivityModule }; compact?: boolean }) {
   const live = 'live' in source;
   const host = useDioramaHost();
   const { tl, status, error } = useRunTimeline(source, feed);
@@ -80,6 +81,15 @@ export function Diorama({ source, feed, connected = true, className, label = 'Ru
   }, []);
   // A replay starts from its beginning and plays once it is loaded.
   useEffect(() => { if (!live && status === 'ready') updatePlayback(() => ({ ...initialPlayback(tlRef.current, false), playing: true })); }, [live, status, tl.runId, updatePlayback]);
+  // Side window: pause at the first moment the run's progress reaches `value`, and follow it when it changes.
+  const seekValue = seekToProgress?.value, seekActivity = seekToProgress?.activity;
+  useEffect(() => {
+    if (seekValue === undefined || !seekActivity || live || status !== 'ready') return;
+    const cur = tlRef.current, b = bounds(cur);
+    if (!b) return;
+    const hit = cur.scores.find(sc => sc.t >= b.start && seekActivity.progressAt(cur, sc.t) >= seekValue);
+    updatePlayback(p => ({ ...seek(p, cur, hit ? hit.t : b.end), playing: false }));
+  }, [seekValue, seekActivity, live, status, tl.runId, updatePlayback]);
   // The clock: one step per animation frame while playing or live; nothing while paused or the page is hidden.
   useEffect(() => {
     if (!pb.playing && !pb.live) return;
@@ -133,9 +143,9 @@ export function Diorama({ source, feed, connected = true, className, label = 'Ru
         {line && <p role='status' className='absolute inset-x-0 bottom-0 bg-background/80 px-3 py-1.5 text-xs text-muted-foreground'>{line}</p>}
         {cutShort && <p role='status' className='absolute right-3 top-3 rounded bg-amber-500/90 px-2 py-0.5 text-xs text-black'>Recording ends early: it was cut short</p>}
       </div>
-      {shown && <Controls tl={tl} pb={pb} live={live} markers={markers} prefs={camera === prefs.camera ? prefs : { ...prefs, camera }} reducedMotion={reducedMotion}
+      {shown && !compact && <Controls tl={tl} pb={pb} live={live} markers={markers} prefs={camera === prefs.camera ? prefs : { ...prefs, camera }} reducedMotion={reducedMotion}
         cameras={cameras} canXray={layer.xray} onPrefs={setPrefs} onSeek={onSeek} onPlay={onPlay} onSpeed={onSpeed} onLive={onLive} />}
-      <Panels tl={tl} frame={frame} xray={xray} selected={selected} onSelect={setSelected} onSeek={onSeek} />
+      {!compact && <Panels tl={tl} frame={frame} xray={xray} selected={selected} onSelect={setSelected} onSeek={onSeek} />}
     </section>
   );
 }

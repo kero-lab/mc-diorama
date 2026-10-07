@@ -31,3 +31,6 @@ export { useRunTimeline, MAX_BUFFER, type TimelineStatus, type RunTimeline } fro
 export { PUBLIC_LAYERS } from './layers';
 export { PARKOUR_LAYER } from './layers/parkour';
 export { moveKindOf, landingValues, marginBand, targetKey, parkourMarkers, pasteMarkers, type MarginBand } from './layers/parkour/derive';
+export * from './comparison/pace';
+export { PaceTrack } from './comparison/pace-track';
+export { SideWindow } from './comparison/side-window';

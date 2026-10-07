@@ -1,6 +1,4 @@
-// Task 3 stopgap: the camera registry moves in with Task 4, which re-points these two at it.
-type CameraId = 'iso' | 'top' | 'side' | 'shoulder' | 'first' | 'cinematic';
-const CAMERA_IDS: CameraId[] = ['iso', 'top', 'side', 'shoulder', 'first', 'cinematic'];
+import { CAMERA_IDS, type CameraId } from './registry/cameras';
 
 export interface DioramaPrefs { camera: CameraId; xray: boolean; rotation: 0 | 1 | 2 | 3 }
 export const DEFAULT_PREFS: DioramaPrefs = { camera: 'iso', xray: false, rotation: 0 };

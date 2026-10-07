@@ -230,7 +230,7 @@ describe('public layers (no X-ray)', () => {
     expect(pub.some(m => /slow plan|late plan|correction/i.test(m.label))).toBe(false);
     expect(pub.some(m => m.kind === 'slow_plan' || m.kind === 'late_plan' || m.kind === 'correction')).toBe(false);
     const death = pub.find(m => m.kind === 'death')!;
-    expect(death.label).toBe('no solution');
+    expect(death.label).toBe('no jump found');
     expect(death.label).not.toMatch(/tick|plan for|→/);
     expect(full.find(m => m.kind === 'death')!.label).toMatch(/plan for/);
   });

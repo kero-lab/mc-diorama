@@ -8,6 +8,7 @@ export * from './timeline';
 export * from './seed';
 export * from './playback';
 export * from './frame';
+export * from './activity';
 export * from './interp';
 export * from './render-clock';
 export * from './prefs';

@@ -1,5 +1,5 @@
 // tests/custom-camera.test.ts
-import { CAMERAS, CAMERA_IDS } from '../src/registry/cameras';
+import { CAMERAS, CAMERA_IDS, BUILTIN_CAMERA_IDS } from '../src/registry/cameras';
 import { DEFAULT_CUSTOM, sanitizeCustom, customPose } from '../src/registry/custom-camera';
 import { stateAt } from '../src/frame';
 import { seedTimeline } from '../src/seed';
@@ -51,4 +51,8 @@ describe('custom camera', () => {
     const i = input(tl.startT! + 2000);
     expect(CAMERAS.shoulder.pose(i, { zoom: 3 })).toEqual(CAMERAS.shoulder.pose(i));
   });
+});
+
+it('pins the built-in camera ids', () => {
+  expect([...BUILTIN_CAMERA_IDS]).toEqual(['iso', 'top', 'side', 'shoulder', 'first', 'cinematic']);
 });

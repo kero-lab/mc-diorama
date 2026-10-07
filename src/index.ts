@@ -25,6 +25,7 @@ export * from './scene/player-skin';
 export * from './scene/player-motion';
 export * from './scene/vanilla-material';
 export { Diorama, hasWebGL } from './diorama';
+export type { DioramaProps, DioramaFrameInfo } from './diorama';
 export { Controls, formatClock, markerLeft } from './controls';
 export { ShowOverlay } from './show-overlay';
 export { useRunTimeline, MAX_BUFFER, type TimelineStatus, type RunTimeline } from './use-run-timeline';

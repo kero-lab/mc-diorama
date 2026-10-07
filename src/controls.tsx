@@ -70,8 +70,8 @@ const ViewControls = memo(function ViewControls({ prefs, reducedMotion, onPrefs,
 });
 
 /** Play/pause, speed, Live, the clock, the scrubber with its markers, and the view controls (spec §4.6). */
-export function Controls({ tl, pb, live, markers, prefs, reducedMotion, onPrefs, onSeek, onPlay, onSpeed, onLive, cameras = BUILTIN_CAMERA_IDS, canXray, rewindWindowMs = null }: {
-  tl: Timeline; pb: Playback; live: boolean; markers: TimelineMarker[]; prefs: DioramaPrefs; reducedMotion: boolean; cameras?: readonly CameraId[]; canXray: boolean; rewindWindowMs?: number | null;
+export function Controls({ tl, pb, live, markers, prefs, reducedMotion, onPrefs, onSeek, onPlay, onSpeed, onLive, cameras = BUILTIN_CAMERA_IDS, canXray, rewindWindowMs = null, viewControls = true }: {
+  tl: Timeline; pb: Playback; live: boolean; markers: TimelineMarker[]; prefs: DioramaPrefs; reducedMotion: boolean; cameras?: readonly CameraId[]; canXray: boolean; rewindWindowMs?: number | null; viewControls?: boolean;
   onPrefs(p: DioramaPrefs): void; onSeek(T: number): void; onPlay(playing: boolean): void; onSpeed(s: number): void; onLive(): void;
 }) {
   const { Button } = useDioramaHost();
@@ -97,7 +97,7 @@ export function Controls({ tl, pb, live, markers, prefs, reducedMotion, onPrefs,
         <input type='range' aria-label='Timeline' aria-valuetext={`${formatClock(pb.T - b.start)} of ${formatClock(b.end - b.start)}`} className='w-full cursor-pointer accent-primary'
           min={b.start} max={b.end} step={50} value={Math.round(pb.T)} onChange={e => onSeek(Number(e.target.value))} />
       </div>
-      <ViewControls prefs={prefs} reducedMotion={reducedMotion} onPrefs={onPrefs} cameras={cameras} canXray={canXray} />
+      {viewControls && <ViewControls prefs={prefs} reducedMotion={reducedMotion} onPrefs={onPrefs} cameras={cameras} canXray={canXray} />}
     </div>
   );
 }

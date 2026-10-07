@@ -39,4 +39,12 @@ describe('pace by score', () => {
     const live = run([[0, 0], [10_100, 100]]);
     expect(paceAt(live, 10_100, idx, PARKOUR_ACTIVITY).kind).toBe('level');
   });
+  it('a record whose first score is above her progress: not started, no throw', () => {
+    const rec = paceIndex(run([[0, 10], [10_000, 20]]), PARKOUR_ACTIVITY);
+    expect(paceAt(run([[0, 5]]), 0, rec, PARKOUR_ACTIVITY)).toEqual({ kind: 'not_started' });
+  });
+  it('ignores scores after liveT', () => {
+    const live = run([[0, 0], [15_000, 200]]);
+    expect(paceAt(live, 5_000, idx, PARKOUR_ACTIVITY)).toEqual({ kind: 'not_started' });
+  });
 });

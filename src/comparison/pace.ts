@@ -23,18 +23,23 @@ function floorIndex(a: readonly number[], v: number): number {
   return r;
 }
 
-/** Her live run against the record run, aligned by progress (score), never by time (spec §3.4). */
-export function paceAt(live: Timeline, liveT: number, record: PaceIndex | null, activity: ActivityModule): Pace {
+/** Her live run against the record run, aligned by progress (score), never by time (spec §3.4). Never throws, never extrapolates.
+ *  `liveIndex` is her own paceIndex(live), precomputed by a caller that renders often (PaceTrack memoises it). */
+export function paceAt(live: Timeline, liveT: number, record: PaceIndex | null, activity: ActivityModule, liveIndex?: PaceIndex): Pace {
   if (!record || record.progress.length === 0) return { kind: 'no_record' };
-  const mine = paceIndex({ ...live, scores: live.scores.filter(s => s.t <= liveT) }, activity);
-  const now = mine.progress.at(-1) ?? 0;
+  const mine = liveIndex ?? paceIndex(live, activity);
+  const k = floorIndex(mine.t, liveT - (live.startT ?? 0));   // the last point she had reached by liveT
+  const now = k < 0 ? 0 : mine.progress[k];
   if (now <= 0) return { kind: 'not_started' };
   const recordEnd = record.progress[record.progress.length - 1];
   if (now > recordEnd) return { kind: 'past_record', recordEnd };
-  // Compare at the highest value both runs have reached.
-  const ri = floorIndex(record.progress, now), at = record.progress[ri];
+  // Compare at the highest value both runs have reached. A record that starts above her progress has no point to compare yet.
+  const ri = floorIndex(record.progress, now);
+  if (ri < 0) return { kind: 'not_started' };
+  const at = record.progress[ri];
   // Her side: the FIRST time she reached at least `at` (scores jump: she may have gone 0 → 150 past 100).
   const mi = mine.progress.findIndex(v => v >= at);
+  if (mi < 0 || mi > k) return { kind: 'not_started' };
   const deltaMs = record.t[ri] - mine.t[mi];
   if (Math.abs(deltaMs) <= LEVEL_MS) return { kind: 'level', deltaMs: Math.abs(deltaMs), at };
   return { kind: deltaMs > 0 ? 'ahead' : 'behind', deltaMs: Math.abs(deltaMs), at };

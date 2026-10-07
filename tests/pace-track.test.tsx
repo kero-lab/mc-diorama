@@ -18,3 +18,7 @@ it('says she is past the record run', () => {
   render(<PaceTrack live={run([[0, 0], [9000, 400]])} T={9000} record={paceIndex(run([[0, 0], [5000, 300]]), PARKOUR_ACTIVITY)} activity={PARKOUR_ACTIVITY} />);
   expect(screen.getByText('Past the record run (300)')).toBeInTheDocument();
 });
+it('renders without throwing when the record starts above her score', () => {
+  render(<PaceTrack live={run([[0, 5]])} T={0} record={paceIndex(run([[0, 10], [9000, 20]]), PARKOUR_ACTIVITY)} activity={PARKOUR_ACTIVITY} />);
+  expect(screen.getByText('Waiting for the first point')).toBeInTheDocument();
+});

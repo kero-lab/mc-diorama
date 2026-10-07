@@ -7,7 +7,7 @@ import { paceAt, paceIndex, type PaceIndex } from './pace';
 const n = (v: number) => v.toLocaleString('en-US');
 const s = (ms: number) => (ms / 1000).toFixed(1);
 
-/** One line + a bar: ahead/behind the record run at the same score (spec §3.4). Text carries the meaning; colour only repeats it. */
+/** One line: ahead/behind the record run at the same score (spec §3.4). Text carries the meaning; colour only repeats it. */
 export function PaceTrack({ live, T, record, activity }: { live: Timeline; T: number; record: PaceIndex | null; activity: ActivityModule }) {
   const mine = useMemo(() => paceIndex(live, activity), [live.scores, live.startT, activity]);   // rebuilt only when a score arrives
   const p = paceAt(live, T, record, activity, mine);

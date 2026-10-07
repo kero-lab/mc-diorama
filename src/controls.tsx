@@ -89,7 +89,7 @@ export function Controls({ tl, pb, live, markers, prefs, reducedMotion, onPrefs,
           </select>
         </label>
         {live && <Button size='sm' variant={pb.live ? 'secondary' : 'default'} className={TOUCH} disabled={pb.live} onClick={onLive}><Radio className='mr-1 size-4' />{pb.live ? 'Live' : 'Back to live'}</Button>}
-        {live && !pb.live && <span className='tabular-nums text-xs text-muted-foreground'>−{formatClock(b.end - pb.T)}</span>}
+        {live && !pb.live && rewindWindowMs !== null && rewindWindowMs !== undefined && <span aria-label={`${formatClock(b.end - pb.T)} behind live`} className='tabular-nums text-xs text-muted-foreground'>−{formatClock(b.end - pb.T)}</span>}
         <span className='ml-auto text-xs tabular-nums text-muted-foreground'>{formatClock(pb.T - b.start)} / {formatClock(b.end - b.start)}</span>
       </div>
       <div className='relative pt-3'>

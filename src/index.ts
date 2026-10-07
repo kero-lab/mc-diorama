@@ -30,7 +30,7 @@ export { ShowOverlay } from './show-overlay';
 export { useRunTimeline, MAX_BUFFER, type TimelineStatus, type RunTimeline } from './use-run-timeline';
 export { PUBLIC_LAYERS } from './layers';
 export { PARKOUR_LAYER } from './layers/parkour';
-export { moveKindOf, landingValues, marginBand, targetKey, parkourMarkers, pasteMarkers, type MarginBand } from './layers/parkour/derive';
+export { moveKindOf, landingValues, marginBand, targetKey, publicParkourMarkers, pasteMarkers, type MarginBand } from './layers/parkour/derive';
 export * from './comparison/pace';
 export { PaceTrack } from './comparison/pace-track';
 export { SideWindow } from './comparison/side-window';

@@ -67,7 +67,7 @@ export function thinkingRows(tl: Timeline): ThinkingRow[] {
 }
 const dash = (v: string | null) => v ?? '–';
 /** A landing's exact values for the landing list (spec §4.6); an unknown is a dash, never a guess. */
-export function landingValues(j: JumpRec, r: ThinkingRow | undefined, planner = true): [string, string][] {
+export function landingValues(j: JumpRec, r: ThinkingRow | undefined, planner = false): [string, string][] {
   const ms = j.plannerMs ?? r?.plannerMs ?? null;
   const all: [string, string][] = [
     ['Gap', String(j.gap)], ['Height', String(j.height)], ['Offset', String(j.offset)], ['Block', j.blockType],

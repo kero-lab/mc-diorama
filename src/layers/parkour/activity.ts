@@ -5,7 +5,7 @@ import { DEATH_CAUSE_WORDS } from './derive';
 
 const JPM_MIN_MS = 5000;
 /** Plain words for how a run ended, never the controller's enum (Rem Live §6.2). Typed over the union: a new reason fails typecheck. */
-export const END_WORDS: Record<EndReason, string> = { death: 'fell', aborted: 'ended by Ara', stopped: 'stopped', session_limit: 'time limit' };
+export const END_WORDS: Record<EndReason, string> = { death: 'fell', aborted: 'stopped early', stopped: 'stopped', session_limit: 'time limit' };
 const words = <T extends string>(map: Record<T, string>, k: string): string | undefined => (Object.hasOwn(map, k) ? map[k as T] : undefined);
 
 export const PARKOUR_ACTIVITY: ActivityModule = {

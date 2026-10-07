@@ -62,7 +62,7 @@ const LandingList = memo(function LandingList({ tl, rows, selected, onSelect, on
       </ol></div>
       {sel ? (
         <dl role='group' aria-label={`landing ${sel.seq} values`} className='grid grid-cols-2 content-start gap-x-3 gap-y-1 rounded-md border p-2 text-xs'>
-          {landingValues(sel, rows.find(r => r.seq === sel.seq)).map(([k, v]) => (
+          {landingValues(sel, rows.find(r => r.seq === sel.seq), true).map(([k, v]) => (
             <div key={k} className='contents'><dt className='text-muted-foreground'>{k}</dt><dd className='text-right font-medium tabular-nums'>{(() => { const match = v.match(/^(.*?)( b\/tick| ms| ticks?| b)$/); return match ? <>{match[1]}<span className='font-normal text-muted-foreground'>{match[2]}</span></> : v; })()}</dd></div>
           ))}
         </dl>

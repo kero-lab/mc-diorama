@@ -1,12 +1,18 @@
 {
   "name": "@kero-lab/mc-diorama",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Rem's Minecraft diorama: event-driven 3D live/replay view (RemHub, Rem Live).",
   "exports": {
     ".": "./src/index.ts",
     "./debug": "./src/debug/index.ts",
     "./assets/*": "./assets/*"
   },
+  "files": [
+    "src",
+    "assets",
+    "README.md",
+    "LICENSE"
+  ],
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
   },

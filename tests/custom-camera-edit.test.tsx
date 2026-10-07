@@ -47,3 +47,26 @@ describe('OrbitSurface', () => {
     expect(onChange.mock.calls.at(-1)![0].distance).toBeCloseTo(DEFAULT_CUSTOM.distance * 1.15);
   });
 });
+
+describe('OrbitSurface browser integration', () => {
+  it('the wheel is a non-passive native listener that cancels page scroll', () => {
+    const onChange = vi.fn();
+    render(<OrbitSurface value={DEFAULT_CUSTOM} onChange={onChange} />);
+    const s = screen.getByRole('application', { name: /camera/i });
+    const ev = new WheelEvent('wheel', { deltaY: 100, cancelable: true, bubbles: true });
+    s.dispatchEvent(ev);
+    expect(ev.defaultPrevented).toBe(true);
+    expect(onChange.mock.calls.at(-1)![0].distance).toBeCloseTo(DEFAULT_CUSTOM.distance * 1.15);
+  });
+  it('Ctrl/Cmd/Alt chords are left to the browser', () => {
+    const onChange = vi.fn();
+    render(<OrbitSurface value={DEFAULT_CUSTOM} onChange={onChange} />);
+    const s = screen.getByRole('application', { name: /camera/i });
+    for (const init of [{ key: '-', ctrlKey: true }, { key: '=', metaKey: true }, { key: 'ArrowLeft', altKey: true }]) {
+      const ev = new KeyboardEvent('keydown', { ...init, cancelable: true, bubbles: true });
+      s.dispatchEvent(ev);
+      expect(ev.defaultPrevented).toBe(false);
+    }
+    expect(onChange).not.toHaveBeenCalled();
+  });
+});

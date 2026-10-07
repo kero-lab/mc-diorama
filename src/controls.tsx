@@ -1,5 +1,5 @@
 'use client';
-import { Boxes, Map, PanelsTopLeft, Footprints, Eye, Clapperboard, Pause, Play, Radio, RotateCw, ScanEye } from 'lucide-react';
+import { Boxes, Map, PanelsTopLeft, Footprints, Eye, Clapperboard, Pause, Play, Radio, RotateCw, ScanEye, Crosshair } from 'lucide-react';
 import { memo, useMemo, useRef, type KeyboardEvent } from 'react';
 import { useDioramaHost } from './host';
 import { bounds, SPEEDS, type Playback } from './playback';
@@ -20,7 +20,7 @@ export function markerLeft(t: number, b: { start: number; end: number }): number
 const MARK: Record<TimelineMarker['kind'], string> = {
   paste: 'bg-lime-500', slow_plan: 'bg-sky-400', late_plan: 'bg-red-500', correction: 'bg-orange-400', death: 'bg-red-700', gap: 'bg-zinc-400', reset: 'bg-zinc-600', truncated: 'bg-amber-500', end: 'bg-foreground',
 };
-const CAMERA_ICONS = { iso: Boxes, top: Map, side: PanelsTopLeft, shoulder: Footprints, first: Eye, cinematic: Clapperboard };
+const CAMERA_ICONS = { iso: Boxes, top: Map, side: PanelsTopLeft, shoulder: Footprints, first: Eye, cinematic: Clapperboard, custom: Crosshair };
 const TOUCH = 'min-h-9 pointer-coarse:min-h-11';
 
 /** The markers above the scrubber, each a button that seeks. Memoised: they change only with the Timeline, while the

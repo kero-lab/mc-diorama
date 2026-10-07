@@ -14,6 +14,7 @@ export * from './prefs';
 export { useReducedMotion } from './use-reduced-motion';
 export * from './registry/blocks';
 export * from './registry/cameras';
+export * from './registry/custom-camera';
 export * from './registry/entities';
 export * from './registry/layers';
 export * from './scene/textures';

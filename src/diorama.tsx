@@ -126,7 +126,7 @@ export function Diorama({ source, feed, connected = true, className, label = 'Ru
   return (
     <section aria-label={label} data-status={status} data-connected={live ? String(connected) : undefined} className={className ?? 'space-y-3'}>
       <div className='relative aspect-[4/3] w-full overflow-hidden rounded-lg border bg-gradient-to-b from-zinc-100 to-zinc-200 dark:from-zinc-900 dark:to-zinc-950 sm:aspect-[16/9]'>
-        {shown && webgl && <Suspense fallback={canvasFallback}><DioramaCanvas tl={tl} frame={frame} camera={camera} rotation={prefs.rotation} xray={xray} reducedMotion={reducedMotion} layer={layer} selected={selected} active={visible && (pb.playing || pb.live) && !frame.atEnd} timeScale={timeScale} renderFrame={renderFrame} /></Suspense>}
+        {shown && webgl && <Suspense fallback={canvasFallback}><DioramaCanvas tl={tl} frame={frame} camera={camera} custom={prefs.custom} rotation={prefs.rotation} xray={xray} reducedMotion={reducedMotion} layer={layer} selected={selected} active={visible && (pb.playing || pb.live) && !frame.atEnd} timeScale={timeScale} renderFrame={renderFrame} /></Suspense>}
         {shown && webgl === false && <p className='absolute inset-0 grid place-items-center p-6 text-center text-sm text-muted-foreground'>3D view unavailable (WebGL is off in this browser). Every number is listed below.</p>}
         {shown && <ShowOverlay tl={tl} frame={frame} />}
         {shown && <Overlay tl={tl} frame={frame} />}

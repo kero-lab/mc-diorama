@@ -51,6 +51,9 @@ function VanillaSky() {
   const { assetBase } = useDioramaHost();
   const sun = useSunTexture(`${assetBase}/1.21.11/environment/sun.png`);
   const camera = useThree(s => s.camera);
+  // The orthographic views draw from near = -1000, i.e. behind the eye as well, so a sun 100 blocks above the eye would
+  // wash the top view white. Vanilla only ever sees its sun by looking up through a perspective camera.
+  const perspective = !(camera as THREE.OrthographicCamera).isOrthographicCamera;
   const group = useRef<THREE.Group>(null);
   const material = useMemo(() => new THREE.ShaderMaterial({ vertexShader: skyVertex, fragmentShader: skyFragment, depthWrite: false, side: THREE.BackSide, fog: false,
     uniforms: { sky: { value: new THREE.Color().setRGB(...SKY, THREE.SRGBColorSpace) }, fog: { value: new THREE.Color().setRGB(...FOG, THREE.SRGBColorSpace) }, skyEnd: { value: SKY_END } } }), []);
@@ -61,7 +64,7 @@ function VanillaSky() {
   // LevelRenderer: sun quad ±30 at distance 100, overhead at noon (sun angle 0 at tick 6000), additive.
   return <group ref={group} renderOrder={-1}>
     <mesh material={material} frustumCulled={false} renderOrder={-2}><sphereGeometry args={[400, 32, 16]} /></mesh>
-    {sun && <mesh position={[0, 100, 0]} rotation={[Math.PI / 2, 0, 0]} renderOrder={-1} frustumCulled={false}>
+    {sun && perspective && <mesh position={[0, 100, 0]} rotation={[Math.PI / 2, 0, 0]} renderOrder={-1} frustumCulled={false}>
       <planeGeometry args={[60, 60]} /><meshBasicMaterial map={sun} transparent blending={THREE.AdditiveBlending} depthWrite={false} fog={false} side={THREE.DoubleSide} />
     </mesh>}
   </group>;

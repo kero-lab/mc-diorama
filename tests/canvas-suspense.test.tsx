@@ -11,10 +11,11 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import DioramaCanvas, { type DioramaCanvasProps } from '../src/canvas';
 import { DioramaHostProvider, type DioramaHost } from '../src/host';
 
-const loader = vi.hoisted(() => ({ mode: 'pending' as 'pending' | 'fail-sun' }));
+const loader = vi.hoisted(() => ({ mode: 'pending' as 'pending' | 'fail-sun' | 'load-sun', ortho: false }));
 vi.mock('@react-three/fiber', async importOriginal => {
   const THREE = await import('three');
-  const state = { scene: new THREE.Scene(), camera: new THREE.PerspectiveCamera(), invalidate: () => {}, size: { width: 800, height: 450 }, viewport: { width: 800, height: 450 } };
+  const persp = new THREE.PerspectiveCamera(), ortho = new THREE.OrthographicCamera();
+  const state = { scene: new THREE.Scene(), get camera() { return loader.ortho ? ortho : persp; }, invalidate: () => {}, size: { width: 800, height: 450 }, viewport: { width: 800, height: 450 } };
   const never = new Promise(() => {});
   return {
     ...(await importOriginal<object>()),
@@ -45,13 +46,15 @@ beforeEach(() => {
   sunLoads = 0;
   vi.spyOn(console, 'error').mockImplementation(() => {});   // react-dom warns about three's props on unknown tags
   // A non-suspending sun loader goes through TextureLoader#load: never answer (pending) or fail (fail-sun).
-  vi.spyOn(THREE.TextureLoader.prototype, 'load').mockImplementation(function (url, _onLoad, _onProgress, onError) {
+  vi.spyOn(THREE.TextureLoader.prototype, 'load').mockImplementation(function (url, onLoad, _onProgress, onError) {
     if (url.includes('environment/sun')) sunLoads++;
+    const t = new THREE.Texture<HTMLImageElement>();
     if (loader.mode === 'fail-sun') queueMicrotask(() => onError?.(new Error(`404 ${url}`)));
-    return new THREE.Texture();
+    if (loader.mode === 'load-sun') queueMicrotask(() => onLoad?.(t));
+    return t;
   });
 });
-afterEach(() => { loader.mode = 'pending'; vi.restoreAllMocks(); });
+afterEach(() => { loader.mode = 'pending'; loader.ortho = false; vi.restoreAllMocks(); });
 
 const mount = () => render(<DioramaHostProvider host={host}><DioramaCanvas {...props} /></DioramaHostProvider>);
 
@@ -72,4 +75,20 @@ it('a sun texture that fails to load leaves the sky drawn, without the sun, and 
   expect(container.querySelector('spheregeometry')).not.toBeNull();
   expect(container.querySelector('planegeometry')).toBeNull();          // no sun quad without its texture
   expect(sunLoads).toBe(1);
+});
+
+// The sun sits 100 blocks above the eye. The orthographic views (iso, top, side) use near = -1000, so it is drawn behind
+// the eye too, and from the top view its additive 60×60 quad covered the whole course in white (#2184 Task 11a). Vanilla
+// has no orthographic view; its sun is only ever seen by looking up, so it is drawn for the perspective cameras only.
+it('the sun is drawn once loaded with a perspective camera, never with an orthographic one', async () => {
+  loader.mode = 'load-sun';
+  const persp = mount();
+  await new Promise(r => setTimeout(r, 0));
+  expect(persp.container.querySelector('planegeometry')).not.toBeNull();
+  persp.unmount();
+  loader.ortho = true;
+  const ortho = mount();
+  await new Promise(r => setTimeout(r, 0));
+  expect(ortho.container.querySelector('spheregeometry')).not.toBeNull();
+  expect(ortho.container.querySelector('planegeometry')).toBeNull();
 });

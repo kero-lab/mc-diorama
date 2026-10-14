@@ -33,7 +33,19 @@ describe('course mesh', () => {
   });
   it('darkens the top face toward a raised neighbour', () => {
     const m = buildCourseMesh([b(0, 0, 0), b(1, 1, 0)]);
-    expect(brightness(m)).toContain(0.8);
+    // block 0,0,0's UP face: the east side cell (1,1,0) is a full cube (0.2), so (0.2 + 1 + 1 + 1) / 4 = 0.8 at x=1; x=0 stays 1
+    const edge: Record<number, Set<number>> = { 0: new Set(), 1: new Set() };
+    for (const p of m.parts) p.blockOfTriangle.forEach((key, t) => {
+      if (key !== '0,0,0') return;
+      for (let k = 0; k < 3; k++) {
+        const i = t * 3 + k;
+        if (Math.abs(p.positions[i * 3 + 1] - 1) > 1e-6) continue;   // y=1 plane: the UP face (the sides' top edges share it)
+        // side faces also touch y=1, so only take triangles whose three vertices all sit at y=1
+        if ([0, 1, 2].every(j => Math.abs(p.positions[(t * 3 + j) * 3 + 1] - 1) < 1e-6)) edge[p.positions[i * 3] as 0 | 1].add(Math.round(srgb(p.colors[i * 3]) * 100) / 100);
+      }
+    });
+    expect([...edge[1]]).toEqual([0.8]);
+    expect([...edge[0]]).toEqual([1]);
   });
   it('ladders, panes and doors get face shade only; ladders are unshaded', () => {
     const m = buildCourseMesh([b(0, 0, 0, 'ladder', { facing: 'north' }), b(0, 0, 1, 'red_wool')]);

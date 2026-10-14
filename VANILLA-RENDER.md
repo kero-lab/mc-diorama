@@ -55,7 +55,13 @@ Implemented in: `src/scene/rem-model.tsx`.
 ## 6. Ambient occlusion and face shade (`ModelBlockRenderer`, `ClientLevel#getShade`)
 
 - Neighbour shade is `0.2` if `isCollisionShapeFullBlock`, else `1.0` (glass counts as `1.0`).
-- Vertex value `= (sideA + sideB + corner + centre) / 4`; when both sides are blocked the corner takes the side value.
+- Vertex value `= (sideA + sideB + corner + centre) / 4` (`AmbientOcclusionRenderStorage#calculate`). A side is
+  "walled in" only when the cell one further out along the face normal is view-blocking with light block > 0; the shade
+  of the side itself does not decide it. When both sides of a vertex are walled in, the corner is replaced by the shade
+  of `AdjacencyInfo.corners[0]` for that face (up E, down W, north UP, south W, west UP, east DOWN), even when that cell
+  is not one of the vertex's own sides.
+- Culling: opaque full cubes hide touching faces; the glass family (`HalfTransparentBlock#skipRendering`) hides only
+  faces against the same block; a bottom/top slab hides the face pressed against its full side.
 - Face shade (`ClientLevel#getShade`): down `0.5`, up `1.0`, north/south `0.8`, east/west `0.6`.
 - A model with `ambientocclusion: false` gets no AO but keeps face shade; elements with `shade: false` use `1.0`.
   Ladder, glass panes and doors carry the flag; fences do not. A child model inherits the flag from its parent unless it

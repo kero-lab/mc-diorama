@@ -24,6 +24,27 @@ describe('determinism on a real run (d1fae16b)', () => {
     expect(slow).toEqual(forward);
     expect(backward).toEqual(forward);
   });
+  it('a track built live (prefix, then a longer copy) equals a cold full build', () => {
+    const live = seed('d1fae16b'), cold = seed('d1fae16b');
+    expect(cold.samples[0]).not.toBe(live.samples[0]);
+    const n = Math.floor(live.samples.length / 2);
+    const prefix = live.samples.slice(0, n);
+    const tPrefix = prefix.at(-1)!.t;
+    // builds the cache on the prefix only, as the first live frames do
+    spectatorPoseAt(prefix, tPrefix);
+    particlesAt({ ...live, samples: prefix }, tPrefix, blocksAt(live, tPrefix).blocks);
+    // the reducer then hands over a COPIED, longer array sharing the Sample objects
+    const longer = [...prefix, ...live.samples.slice(n)];
+    expect(longer).not.toBe(live.samples);
+    const liveTl = { ...live, samples: longer };
+    const livePoses = probes.map(T => spectatorPoseAt(longer, T));
+    const livePart = probes.map(T => particlesAt(liveTl, T, blocksAt(liveTl, T).blocks));
+    const coldPoses = probes.map(T => spectatorPoseAt(cold.samples, T));
+    const coldPart = probes.map(T => particlesAt(cold, T, blocksAt(cold, T).blocks));
+    expect(livePoses.some(p => p !== null)).toBe(true);
+    expect(livePoses).toEqual(coldPoses);
+    expect(livePart).toEqual(coldPart);
+  });
   it('the death run folds and poses to the end', () => {
     const d = seed('22dd4e13');
     expect(spectatorPoseAt(d.samples, d.samples.at(-1)!.t)).not.toBeNull();

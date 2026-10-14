@@ -22,13 +22,15 @@ export default function DioramaCanvas(p: DioramaCanvasProps) {
   return (
     <Canvas aria-hidden='true' flat frameloop={p.active ? 'always' : 'demand'} dpr={[1, 2]} gl={{ antialias: true, alpha: false }} className='!absolute inset-0'>
       <RenderFrameContext.Provider value={p.renderFrame}>
-      <EnvironmentView env={VANILLA_NOON} />
+      {/* Every scene part sits in its own Suspense: a suspension that reaches R3F's root boundary makes the DOM Canvas
+          throw, the page's Suspense hides it and R3F unmounts the root, losing the WebGL context (#2184 Task 11). */}
+      <Suspense fallback={null}><EnvironmentView env={VANILLA_NOON} /></Suspense>
       <CameraRig id={p.camera} custom={p.custom} tl={p.tl} frame={frame} rotation={p.rotation} reducedMotion={p.reducedMotion} timeScale={p.timeScale} />
-      <CourseField blocks={frame.blocks} />
-      {frame.rem && p.camera !== 'first' && <PlayerModel samples={p.tl.samples} T={frame.T} reducedMotion={p.reducedMotion} />}
+      <Suspense fallback={null}><CourseField blocks={frame.blocks} /></Suspense>
+      {frame.rem && p.camera !== 'first' && <Suspense fallback={null}><PlayerModel samples={p.tl.samples} T={frame.T} reducedMotion={p.reducedMotion} /></Suspense>}
       {!p.reducedMotion && <Suspense fallback={null}><Particles tl={p.tl} T={frame.T} blocks={frame.blocks} /></Suspense>}
-      {frame.entities.map(e => e.pose && <EntityModel key={e.id} kind={e.kind} pose={e.pose} />)}
-      <Scene tl={p.tl} frame={frame} xray={p.xray} selected={p.selected} />
+      <Suspense fallback={null}>{frame.entities.map(e => e.pose && <EntityModel key={e.id} kind={e.kind} pose={e.pose} />)}</Suspense>
+      <Suspense fallback={null}><Scene tl={p.tl} frame={frame} xray={p.xray} selected={p.selected} /></Suspense>
       </RenderFrameContext.Provider>
     </Canvas>
   );

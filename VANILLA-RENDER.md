@@ -5,7 +5,7 @@ decompiled with Vineflower for reading only. No decompiled code is in this repos
 names and constants. Minecraft is © Mojang AB / Microsoft.
 
 Each section: the rule, the constants, the client citation (class#method), and the package file that implements it.
-"Implemented in" names the file that owns the rule today or, for work still to land in 0.4.0, the file that will.
+"Implemented in" names the file that owns the rule.
 
 ## 1. Walk animation state
 
@@ -13,7 +13,7 @@ Each section: the rule, the constants, the client citation (class#method), and t
 Reads: `speed(pt) = min(lerp(pt, speedOld, speed), 1)`; `position(pt) = (position - speed * (1 - pt)) * scale`.
 `LivingEntity#calculateEntityAnimation(includeY=false)` (called from `RemotePlayer#tick`): `d = length(dx, 0, dz)` of the
 interpolated position against the previous tick; `update(min(d * 4, 1), 0.4, 1)`.
-Implemented in: `src/scene/player-motion.ts`.
+Implemented in: `src/vanilla/spectator.ts`.
 
 ## 2. Humanoid pose (`HumanoidModel#setupAnim`)
 
@@ -31,7 +31,7 @@ jacket `16,32` +0.25; slim left arm `32,48` `(-1,-2,-2)` 3x12x4 pivot `(5,2,0)`;
 pivot `(-5,2,0)`; sleeves left `48,48` / right `40,32` +0.25; right leg `0,16` `(-2,0,-2)` 4x12x4 pivot `(-1.9,12,0)`;
 left leg `16,48` pivot `(1.9,12,0)`; pants right `0,32` / left `0,48` +0.25.
 Render transform: `YP(180 - bodyRot)`, `scale(-1,-1,1)`, `scale(0.9375)`, `translate(0,-1.501,0)`.
-Implemented in: `src/scene/rem-model.tsx`, `src/scene/player-skin.ts`.
+Implemented in: `src/vanilla/humanoid.ts`, `src/scene/player-model.tsx`, `src/scene/player-skin.ts`.
 
 ## 3. Body yaw (`LivingEntity#tick`, `tickHeadTurn`)
 
@@ -39,18 +39,19 @@ Implemented in: `src/scene/rem-model.tsx`, `src/scene/player-skin.ts`.
 the target is `move - 180`, otherwise `move`. Else the target is the current `yBodyRot`.
 `tickHeadTurn`: `yBodyRot += wrap(target - yBodyRot) * 0.3`; clamp `|wrap(yRot - yBodyRot)| <= 50`.
 Render uses `rotLerp(pt, ...)` for body and head with no extra clamp.
-Implemented in: `src/scene/player-motion.ts`.
+Implemented in: `src/vanilla/spectator.ts`.
 
 ## 4. Interpolation (`InterpolationHandler`)
 
 3 steps. Per tick: `pos = lerp(1/steps, cur, target)`, `yRot = rotLerp`, `xRot = lerp`, `steps--`, so the fractions are
-1/3, 1/2, 1. Head: `lerpHeadTo(yHeadRot, 3)` follows the same scheme. Per frame: `lerp(pt, old, cur)`.
-Implemented in: `src/interp.ts`, `src/scene/player-motion.ts`.
+1/3, 1/2, 1. Head: `lerpHeadTo(yHeadRot, 3)` follows the same scheme, but the 3-step interpolation restarts only when the
+head-yaw target changes (the server sends RotateHead only on a change); otherwise it keeps running. Per frame: `lerp(pt, old, cur)`.
+Implemented in: `src/vanilla/spectator.ts` (`src/interp.ts` supplies only `breaksBetween`).
 
 ## 5. Sneak
 
 The CROUCHING pose comes from server entity data and drives the crouch block in section 2.
-Implemented in: `src/scene/rem-model.tsx`.
+Implemented in: `src/vanilla/humanoid.ts`.
 
 ## 6. Ambient occlusion and face shade (`ModelBlockRenderer`, `ClientLevel#getShade`)
 
@@ -66,7 +67,7 @@ Implemented in: `src/scene/rem-model.tsx`.
 - A model with `ambientocclusion: false` gets no AO but keeps face shade; elements with `shade: false` use `1.0`.
   Ladder, glass panes and doors carry the flag; fences do not. A child model inherits the flag from its parent unless it
   sets its own. The extractor records the set as the bundle's `ambientOcclusion` map (`{ modelName: false }`).
-Implemented in: `scripts/extract-minecraft.py` (flag), `src/scene/vanilla-blocks.ts` and `src/scene/vanilla-material.ts` (use).
+Implemented in: `scripts/extract-minecraft.py` (flag), `src/vanilla/light.ts` and `src/vanilla/course-mesh.ts` (AO, face shade, culling), `src/scene/vanilla-blocks.ts` (block data). `src/scene/vanilla-material.ts` holds the legacy host material and the entity light.
 
 ## 7. Particles
 
@@ -106,7 +107,11 @@ Implemented in `src/scene/environment.tsx` (`VANILLA_NOON`, `EnvironmentView`): 
 values above; the sky is a back-faced sphere (r 400, follows the camera each frame) whose fragment shader blends sky to fog
 by `d / 192`, with `d = max(16 / tan(elevation), 16)` (the sky disc at y = 16, so even the zenith is fogged by 16/192) and
 the pure fog colour at or below the horizon (`skyColorAt` is the same formula, unit-tested); the sun is a 60x60 additive
-quad at distance 100 overhead.
+quad at distance 100 overhead, drawn for perspective cameras only (the orthographic views start at near = -1000, behind the
+eye, and the sun washed the top view white).
+
+Known difference: the sky shader mixes sky to fog in linear space, while `skyColorAt` mixes in sRGB, so "same formula" is not
+the same colour (about 3-4/255 mid-ramp; three's fog mixes in linear too). Both are to be fixed in one colour-space pass.
 
 Known difference: three's linear fog measures spherical distance, vanilla measures `max(|xz|, |y|)`. The two agree to
 within a few percent inside ~60 blocks of the camera, where fog is zero in both (it starts at 172.8), so it is not
@@ -137,4 +142,4 @@ Light directions, `com.mojang.blaze3d.platform.Lighting` (static initialiser, ea
 
 Confirmed 2026-10-14 by disassembling the remapped client jar with `javap -p -c -constants` (eclipse-temurin:21-jdk);
 `Lighting#updateLevel(CardinalLightType)` selects `DIFFUSE_LIGHT_0/1` for the default case (switch case 1) and the NETHER pair for case 2.
-Entities in the overworld level use the `DIFFUSE_LIGHT_0/1` pair. Implemented in: `src/scene/vanilla-material.ts` (entity material, Task 8).
+Entities in the overworld level use the `DIFFUSE_LIGHT_0/1` pair. Implemented in: `src/scene/vanilla-material.ts` (entity material and light).

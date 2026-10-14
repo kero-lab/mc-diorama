@@ -23,7 +23,7 @@ export * from './scene/textures';
 export * from './scene/vanilla-blocks';
 export * from './scene/door-motion';
 export * from './scene/player-skin';
-export * from './scene/vanilla-material';
+export { createVanillaMaterial } from './scene/vanilla-material';
 export { CustomCameraPanel } from './custom-camera-panel';
 export { Diorama, hasWebGL } from './diorama';
 export type { DioramaProps, DioramaFrameInfo } from './diorama';

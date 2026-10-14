@@ -1,5 +1,4 @@
 'use client';
-import { useReducedMotion } from '../use-reduced-motion';
 import { Html, Line } from '@react-three/drei';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useContext, useEffect, useLayoutEffect, useMemo } from 'react';
@@ -7,7 +6,6 @@ import { BufferGeometry, Float32BufferAttribute, Line as ThreeLine, LineDashedMa
 import type { Vec3T } from '../model';
 import { RenderFrameContext } from '../render-clock';
 import type { LayerSceneProps } from '../registry/layers';
-import { LandingPuff, PUFF_MS } from '../scene/landing-puff';
 import { marginBand } from '../layers/parkour/derive';
 import { useXrayPaths } from './paths';
 
@@ -74,25 +72,21 @@ function SampleDots({ track }: { track: Vec3T[] }) {
   return <points frustumCulled={false}><bufferGeometry><bufferAttribute attach='attributes-position' args={[positions, 3]} /></bufferGeometry><pointsMaterial color='#f472b6' size={0.1} sizeAttenuation /></points>;
 }
 
-/** Show: landing puffs. X-ray (spec §4.5), drawn so the three kinds of path never look alike:
+/** X-ray (spec §4.5), drawn so the three kinds of path never look alike:
  *  - sampled track: solid pink line with a dot per real sample, broken at gaps and resets;
  *  - interpolated: a thin dotted line from the last sample to where she is drawn now (only while interpolating);
  *  - planned: dashed blue ghosts;
  *  plus margin rings, the paste route numbered, and server corrections against the prediction.
  *  Every point array handed to a Line is memoised (see useXrayPaths): a new array would rebuild the line each frame. */
 export function XrayParkourScene({ tl, frame, xray, selected }: LayerSceneProps) {
-  const reducedMotion = useReducedMotion();
   const k = tl.layers.parkour, T = frame.T;
   const { track, runs, ghosts, corrections } = useXrayPaths(tl, T);
-  const fresh = reducedMotion ? [] : k.jumps.filter(j => j.landedAt && j.t <= T && T - j.t < PUFF_MS);
-  const puffs = fresh.map(j => <LandingPuff key={j.seq} at={j.landedAt!} age={T - j.t} bornAt={j.t} />);
-  if (!xray) return <group>{puffs}</group>;
+  if (!xray) return null;
   const paste = k.pastes.filter(p => p.t <= T).at(-1);
   const rem = frame.rem;
   const interpolating = rem !== null && track.length > 0 && (rem.mode === 'interp' || rem.mode === 'linear');
   return (
     <group>
-      {puffs}
       {runs.filter(r => r.length > 1).map((r, n) => <Line key={n} points={r} color='#f472b6' lineWidth={2} />)}
       <SampleDots track={track} />
       <InterpLine from={interpolating ? track.at(-1)! : null} to={interpolating ? [rem.p[0], rem.p[1] + 0.05, rem.p[2]] : null} />

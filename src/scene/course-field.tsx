@@ -12,6 +12,15 @@ import { buildCourseMesh, type CoursePart } from '../vanilla/course-mesh';
 import { unlitMaterial } from './unlit-material';
 import { materialFor } from './textures';
 
+// Unlit twin of materialFor's standard material: the scene has no lights, so a standard material would render black.
+const basicCache = new WeakMap<THREE.Material, THREE.MeshBasicMaterial>();
+function fallbackMaterial(def: Parameters<typeof materialFor>[0]): THREE.MeshBasicMaterial {
+  const src = materialFor(def);
+  let m = basicCache.get(src);
+  if (!m) { m = new THREE.MeshBasicMaterial({ map: src.map, color: src.color, transparent: src.transparent, opacity: src.opacity, depthWrite: src.depthWrite, fog: true }); basicCache.set(src, m); }
+  return m;
+}
+
 export const coursePartsFor = (blocks: readonly WorldBlock[]) => buildCourseMesh(blocks);
 const UNIT = new THREE.BoxGeometry(1, 1, 1);
 
@@ -67,7 +76,7 @@ export function CourseField({ blocks }: { blocks: WorldBlock[] }) {
   const hovered = hover ? blocks.find(b => b.at.join(',') === hover) ?? null : null;
   return <group>
     <Suspense fallback={null}>{mesh.parts.map(p => <Part key={p.key} part={p} onHover={setHover} />)}</Suspense>
-    {mesh.fallback.map(b => <mesh key={b.at.join(',')} geometry={UNIT} material={materialFor(blockDef(b.name).material)} position={[b.at[0] + 0.5, b.at[1] + 0.5, b.at[2] + 0.5]} />)}
+    {mesh.fallback.map(b => <mesh key={b.at.join(',')} geometry={UNIT} material={fallbackMaterial(blockDef(b.name).material)} position={[b.at[0] + 0.5, b.at[1] + 0.5, b.at[2] + 0.5]} />)}
     {hovered && <Html position={[hovered.at[0] + 0.5, hovered.at[1] + 1.3, hovered.at[2] + 0.5]} center><div className='pointer-events-none min-w-32 rounded-lg border border-border bg-background/95 px-3 py-2 text-xs shadow-xl'><strong className='block capitalize text-foreground'>{blockDef(hovered.name).label}</strong><span className='mt-1 block font-mono text-muted-foreground'>{hovered.at.join(' · ')}</span></div></Html>}
   </group>;
 }

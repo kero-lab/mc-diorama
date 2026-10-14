@@ -21,3 +21,13 @@ describe('vanilla noon', () => {
     expect(c[0]).toBeCloseTo((0x78 + (0xb5 - 0x78) * 0.1443) / 255, 2);
   });
 });
+
+describe('sky shaders', () => {
+  it('every #include starts its own line (three only expands includes at line start)', async () => {
+    const { skyVertex, skyFragment } = await import('../src/scene/environment');
+    for (const src of [skyVertex, skyFragment]) {
+      for (const line of src.split('\n')) if (line.includes('#include')) expect(line.startsWith('#include')).toBe(true);
+    }
+    expect(skyFragment).toContain('#include <colorspace_fragment>');
+  });
+});

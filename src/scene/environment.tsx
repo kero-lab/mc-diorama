@@ -21,11 +21,13 @@ export function skyColorAt(elevation: number): [number, number, number] {
   return [0, 1, 2].map(i => SKY[i] + (FOG[i] - SKY[i]) * f) as [number, number, number];
 }
 
-const skyVertex = `varying vec3 vDir; void main() { vDir = normalize((modelMatrix * vec4(position, 0.0)).xyz); gl_Position = projectionMatrix * viewMatrix * vec4((modelMatrix * vec4(position, 1.0)).xyz, 1.0); gl_Position.z = gl_Position.w; }`;
-const skyFragment = `varying vec3 vDir; uniform vec3 sky; uniform vec3 fog; uniform float skyEnd;
+export const skyVertex = `varying vec3 vDir; void main() { vDir = normalize((modelMatrix * vec4(position, 0.0)).xyz); gl_Position = projectionMatrix * viewMatrix * vec4((modelMatrix * vec4(position, 1.0)).xyz, 1.0); gl_Position.z = gl_Position.w; }`;
+export const skyFragment = `varying vec3 vDir; uniform vec3 sky; uniform vec3 fog; uniform float skyEnd;
 void main() { float e = asin(clamp(vDir.y, -1.0, 1.0)); vec3 c = fog;
   if (e > 0.0) { float d = max(16.0 / tan(e), 16.0); c = mix(sky, fog, min(1.0, d / skyEnd)); }
-  gl_FragColor = vec4(c, 1.0); #include <colorspace_fragment> }`;
+  gl_FragColor = vec4(c, 1.0);
+#include <colorspace_fragment>
+}`;
 
 function VanillaSky() {
   const { assetBase } = useDioramaHost();

@@ -88,7 +88,15 @@ fog start/end at RD12 `172.8` / `192` (`end = rd * 16`, `start = end - clamp(end
 distance `max(len(xz), |y|)`. Sky disc fan centre `(0,16,0)`, radius 512, sky colour, fogged over `0..min(rd * 16, 512)`.
 Sun: 60x60 quad at distance 100 overhead. In 1.21.11 the texture lives at `textures/environment/celestial/sun.png`
 (not `environment/sun.png`); the extractor publishes it as `assets/minecraft/1.21.11/environment/sun.png`.
-Implemented in: `src/scene/` (sky and fog land in a later 0.4.0 task).
+Implemented in `src/scene/environment.tsx` (`VANILLA_NOON`, `EnvironmentView`): scene background and `THREE.Fog` use the
+values above; the sky is a back-faced sphere (r 400, follows the camera each frame) whose fragment shader blends sky to fog
+by `d / 192`, with `d = max(16 / tan(elevation), 16)` (the sky disc at y = 16, so even the zenith is fogged by 16/192) and
+the pure fog colour at or below the horizon (`skyColorAt` is the same formula, unit-tested); the sun is a 60x60 additive
+quad at distance 100 overhead.
+
+Known difference: three's linear fog measures spherical distance, vanilla measures `max(|xz|, |y|)`. The two agree to
+within a few percent inside ~60 blocks of the camera, where fog is zero in both (it starts at 172.8), so it is not
+emulated with a custom fog chunk.
 
 ## 9. Lighting model (`light.glsl`)
 

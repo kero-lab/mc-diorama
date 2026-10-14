@@ -102,6 +102,20 @@ schematicLabel(id, dataSha)?.name;    // null for an unknown id or a stale dataS
 const src = `${assetBase}/${schematicPreview(id)}`; // '1.21.11/schematics/<file>' under assets/
 ```
 
+## 0.4.0
+
+Vanilla base layer (remlab #2184). Rules and client citations: `VANILLA-RENDER.md`.
+
+- Flat rendering: the Canvas uses no tone mapping, as vanilla.
+- Environment slot with the vanilla noon (sky shader, sun, fog); the course renders unlit with vanilla face shade, culling and the vanilla smooth-lighting AO corner rule.
+- Spectator smoothing: vanilla position interpolation, body yaw and the head 3-step rule.
+- Vanilla slim player model with walk animation, crouch and arm bob; entity lighting is world-space; rotations use ZYX order (`THREE_EULER_ORDER`).
+- Hand slot: `HELD_ITEMS` / `heldItemFor` let a host render the held item.
+- Sprint dust and fall bursts, deterministic (pose and particles are a function of recording and time).
+- Real-run fixtures (public projection only) and a determinism test.
+- Removed: the landing puff, the door tween, `playerMotionAt` and `BlocksField`.
+- New asset: `1.21.11/environment/sun.png` (from the jar's `environment/celestial/sun.png`); hosts copying `assets/minecraft` pick it up.
+
 ## License
 
 MIT

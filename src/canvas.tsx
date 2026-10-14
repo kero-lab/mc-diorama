@@ -9,7 +9,8 @@ import type { LayerDef } from './registry/layers';
 import { CourseField } from './scene/course-field';
 import { EnvironmentView, VANILLA_NOON } from './scene/environment';
 import { CameraRig } from './scene/camera-rig';
-import { EntityModel, RemModel } from './scene/rem-model';
+import { EntityModel } from './scene/entity-model';
+import { PlayerModel } from './scene/player-model';
 import type { Timeline } from './types';
 
 export interface DioramaCanvasProps { tl: Timeline; frame: FrameState; camera: CameraId; custom?: CustomCameraParams; rotation: 0 | 1 | 2 | 3; xray: boolean; reducedMotion: boolean; layer: LayerDef; selected: number | null; active: boolean; timeScale: { current: number }; renderFrame: RefObject<FrameState> }
@@ -23,7 +24,7 @@ export default function DioramaCanvas(p: DioramaCanvasProps) {
       <EnvironmentView env={VANILLA_NOON} />
       <CameraRig id={p.camera} custom={p.custom} tl={p.tl} frame={frame} rotation={p.rotation} reducedMotion={p.reducedMotion} timeScale={p.timeScale} />
       <CourseField blocks={frame.blocks} />
-      {frame.rem && p.camera !== 'first' && <RemModel samples={p.tl.samples} pose={frame.rem} T={frame.T} reducedMotion={p.reducedMotion} />}
+      {frame.rem && p.camera !== 'first' && <PlayerModel samples={p.tl.samples} T={frame.T} reducedMotion={p.reducedMotion} />}
       {frame.entities.map(e => e.pose && <EntityModel key={e.id} kind={e.kind} pose={e.pose} />)}
       <Scene tl={p.tl} frame={frame} xray={p.xray} selected={p.selected} />
       </RenderFrameContext.Provider>

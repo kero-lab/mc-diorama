@@ -53,3 +53,9 @@ export const THREE_EULER_ORDER = 'ZYX' as const;
 export function toThree(part: PartPose): { position: [number, number, number]; rotation: [number, number, number] } {
   return { position: [part.x, 24 - part.y, -part.z], rotation: [part.xRot, -part.yRot, -part.zRot] };
 }
+
+/** Allocation-free toThree: poses a three Object3D (position + rotation, in `THREE_EULER_ORDER`) from a vanilla part pose. */
+export function poseObject3D(part: PartPose, o: { position: { set(x: number, y: number, z: number): unknown }; rotation: { set(x: number, y: number, z: number, order?: typeof THREE_EULER_ORDER): unknown } }): void {
+  o.position.set(part.x, 24 - part.y, -part.z);
+  o.rotation.set(part.xRot, -part.yRot, -part.zRot, THREE_EULER_ORDER);
+}

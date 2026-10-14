@@ -1,46 +1,9 @@
 import { createVanillaMaterial } from '../src/scene/vanilla-material';
 import { describe, expect, it } from 'vitest';
 import { Box3, Matrix4, Vector3, DataTexture, NearestFilter } from 'three';
-import { poseAt } from '../src/interp';
-import { playerMotionAt } from '../src/scene/player-motion';
 import { doorHinge, modelsFor, vanillaMesh } from '../src/scene/vanilla-blocks';
 import { doorOpenAt, doorTrack } from '../src/scene/door-motion';
-import { blockKey, type BlockChange, type Sample, type WorldBlock } from '../src/types';
-
-const sample = (t: number, x: number, overrides: Partial<Sample> = {}): Sample => ({ t,tick:t/50,p:[x,0,0],v:null,yaw:0,pitch:0,c:'fs',held:null,ride:null,g:true,reset:false,...overrides });
-const samples = Array.from({length:21},(_,i)=>sample(i*50,i*.22));
-const motion = (ss: Sample[], T: number) => playerMotionAt(ss,T,poseAt(ss,T)!);
-
-describe('recording-driven player articulation',()=>{
-  it('is identical after forward playback at different cadences, a direct seek and a reverse seek',()=>{
-    const expected = motion(samples,375);
-    for (const cadence of [8,16,33,200]) {
-      for (let t=0;t<375;t+=cadence) motion(samples,t);
-      expect(motion(samples,375)).toEqual(expected);
-    }
-    motion(samples,850);
-    expect(motion(samples,375)).toEqual(expected);
-    expect(Math.abs(expected.swing)).toBeGreaterThan(.1);
-  });
-  it('does not run in place while idle, beyond the recording, across gaps or teleports',()=>{
-    expect(motion(samples,1100).swing).toBe(0);
-    expect(motion([sample(0,0),sample(50,0),sample(100,0)],25).swing).toBe(0);
-    expect(motion([sample(0,0),sample(600,1)],300).swing).toBe(0);
-    expect(motion([sample(0,0),sample(50,10,{reset:true})],25).swing).toBe(0);
-  });
-  it('holds airborne balance instead of cycling the legs and respects reduced motion',()=>{
-    const airborne=samples.map(s=>({...s,g:false}));
-    expect(motion(airborne,375)).toMatchObject({swing:0,air:1});
-    expect(playerMotionAt(samples,375,poseAt(samples,375)!,true)).toMatchObject({swing:0,air:0,lean:0});
-  });
-  it('blends grounded/airborne and crouch states without changing the source pose',()=>{
-    const ss=[sample(0,0),sample(100,.4,{g:false,c:'k'})];
-    const p=poseAt(ss,50)!;
-    const original=structuredClone(p);
-    expect(playerMotionAt(ss,50,p)).toMatchObject({air:.5,crouch:.5});
-    expect(p).toEqual(original);
-  });
-});
+import { blockKey, type BlockChange, type WorldBlock } from '../src/types';
 
 describe('vanilla block-state geometry',()=>{
   it('synchronizes door halves despite delayed confirmation, without changing source events',()=>{

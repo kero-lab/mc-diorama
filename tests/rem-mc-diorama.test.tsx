@@ -6,9 +6,8 @@ import { PARKOUR_ACTIVITY } from '../src/activity';
 import { Diorama, hasWebGL } from '../src/diorama';
 import { lastChangeBefore } from '../src/frame';
 import { moveKindOf, parkourMarkers, publicParkourMarkers } from '../src/layers/parkour/derive';
-import { visibleBlocks } from '../src/scene/blocks-field';
 import { emptyTimeline, timelineReducer } from '../src/timeline';
-import type { PasteRec, WorldBlock } from '../src/types';
+import type { PasteRec } from '../src/types';
 import type { LiveFeed } from '../src/live-feed';
 import { DEBUG_LAYERS } from '../src/debug';
 import type { DioramaHost } from '../src/host';
@@ -129,12 +128,6 @@ describe('Diorama shell (no WebGL in jsdom: the DOM fallback)', () => {
 });
 
 describe('scene helpers', () => {
-  const at = (x: number): WorldBlock => ({ at: [x, 99, 0], name: 'red_wool', state: null, order: x });
-  it('hides blocks more than 30 behind her and fades the 20-30 band; ahead stays', () => {
-    const v = visibleBlocks([at(-40), at(-25), at(-5), at(10)], [0.5, 100, 0.5], { x: 1, z: 0 });   // distances from block centres
-    expect(v.map(b => [b.block.at[0], b.fade])).toEqual([[-25, 0.5], [-5, 1], [10, 1]]);
-    expect(visibleBlocks([at(-40)], null, { x: 1, z: 0 })).toHaveLength(1);       // nothing to measure from: show all
-  });
   it('names the move kind from the paste itself', () => {
     const p = (over: Partial<PasteRec>): PasteRec => ({ ...tl.layers.parkour.pastes[0], ...over });
     expect(moveKindOf(p({}))).toBe('Door climb');

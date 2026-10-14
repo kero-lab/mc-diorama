@@ -1,14 +1,15 @@
 import { BufferGeometry, Float32BufferAttribute, Matrix4, Vector3 } from 'three';
-import type { BlockStateProps } from '../model';
+import type { BlockStateProps, Vec3T } from '../model';
+import { shadeBrightness } from '../vanilla/light';
 import bundle from '../registry/vanilla-blocks.json';
 
 type FaceName = 'north' | 'south' | 'east' | 'west' | 'up' | 'down';
 interface Face { texture: string; uv?: number[]; rotation?: number }
-interface Element { from: number[]; to: number[]; faces: Partial<Record<FaceName, Face>> }
+interface Element { from: number[]; to: number[]; shade?: boolean; faces: Partial<Record<FaceName, Face & { cullface?: FaceName }>> }
 interface Variant { model: string; x?: number; y?: number; uvlock?: boolean }
 type Condition = Record<string, string | Condition[]>;
 interface State { variants?: Record<string, Variant | Variant[]>; multipart?: { when?: Condition; apply: Variant | Variant[] }[] }
-const data = bundle as unknown as { states: Record<string, State>; models: Record<string, { elements: Element[] }> };
+const data = bundle as unknown as { states: Record<string, State>; models: Record<string, { elements: Element[] }>; ambientOcclusion?: Record<string, false> };
 const canonical = (name: string) => name.replace(/^minecraft:/, '');
 
 function matches(when: Condition, state: BlockStateProps): boolean {
@@ -55,6 +56,60 @@ function defaultUV(face: FaceName, a: number[], b: number[]): number[] {
   }
 }
 
+export interface VanillaQuad { face: FaceName; pts: [Vec3T, Vec3T, Vec3T, Vec3T]; uv: [[number, number], [number, number], [number, number], [number, number]]; texture: string; shade: boolean; ao: boolean; cull: FaceName | null; onBoundary: boolean }
+const quadCache = new Map<string, VanillaQuad[]>();
+const sideOf = (n: Vector3): FaceName => Math.abs(n.y) > Math.abs(n.x) && Math.abs(n.y) > Math.abs(n.z) ? (n.y > 0 ? 'up' : 'down') : Math.abs(n.x) > Math.abs(n.z) ? (n.x > 0 ? 'east' : 'west') : (n.z > 0 ? 'south' : 'north');
+const ROT_FACE = (f: FaceName, variant: Variant): FaceName => {   // a cullface rotates with the model
+  const v = new Vector3(...({ down: [0, -1, 0], up: [0, 1, 0], north: [0, 0, -1], south: [0, 0, 1], west: [-1, 0, 0], east: [1, 0, 0] } as const)[f]);
+  v.applyMatrix4(new Matrix4().makeRotationY(-(variant.y ?? 0) * Math.PI / 180).multiply(new Matrix4().makeRotationX(-(variant.x ?? 0) * Math.PI / 180)));
+  return sideOf(v);
+};
+
+/** Every face of the selected vanilla variants, in block-local coordinates (0..1), with what lighting needs.
+ *  `onBoundary` follows ModelBlockRenderer's faceCubic: axis-aligned in its plane and (on the block's face plane, or the
+ *  block's collision shape is a full block, so an inset quad still samples the layer in front of it). */
+export function vanillaQuads(name: string, props: BlockStateProps | null): VanillaQuad[] {
+  const variants = modelsFor(name, props);
+  if (!variants.length) return [];
+  const fullCollision = shadeBrightness({ name, state: props }) < 1;
+  const key = JSON.stringify(variants) + (fullCollision ? '#full' : '');
+  const cached = quadCache.get(key); if (cached) return cached;
+  const out: VanillaQuad[] = [];
+  for (const variant of variants) {
+    const model = canonical(variant.model);
+    const transform = new Matrix4().makeTranslation(.5,.5,.5)
+      .multiply(new Matrix4().makeRotationY(-(variant.y ?? 0) * Math.PI / 180))
+      .multiply(new Matrix4().makeRotationX(-(variant.x ?? 0) * Math.PI / 180))
+      .multiply(new Matrix4().makeTranslation(-.5,-.5,-.5));
+    for (const e of data.models[model].elements) {
+      for (const [side, face] of Object.entries(e.faces) as [FaceName, Face & { cullface?: FaceName }][]) {
+        const pts = corners(side,e.from,e.to).map(p => new Vector3(...p as [number,number,number]).multiplyScalar(1/16).applyMatrix4(transform));
+        const [u,v,U,V] = face.uv ?? defaultUV(side,e.from,e.to);
+        const uv = [[u,v],[U,v],[u,V],[U,V]];
+        // Texture rotation follows the perimeter, rather than swapping rectangular UV bounds.
+        const perimeter = [0,1,3,2], shift = (face.rotation ?? 0) / 90;
+        let rotated = uv.map((_,i) => uv[perimeter[(perimeter.indexOf(i) + shift) % 4]]);
+        const normal = pts[2].clone().sub(pts[0]).cross(pts[1].clone().sub(pts[0]));
+        const world = sideOf(normal);
+        if (variant.uvlock && (variant.x || variant.y)) {
+          const min=new Vector3(Infinity,Infinity,Infinity), max=new Vector3(-Infinity,-Infinity,-Infinity);
+          pts.forEach(p=>{min.min(p);max.max(p);});
+          const reference=corners(world,min.toArray(),max.toArray()).map(p=>new Vector3(...p as [number,number,number]));
+          const locked=rotated;
+          rotated=pts.map(p=>locked[reference.findIndex(q=>q.distanceToSquared(p)<1e-12)]);
+        }
+        const axis = { up: 1, down: 1, east: 0, west: 0, north: 2, south: 2 }[world], edge = { up: 1, east: 1, south: 1, down: 0, west: 0, north: 0 }[world];
+        const level = pts[0].getComponent(axis);
+        const flat = pts.every(p => Math.abs(p.getComponent(axis) - level) < 1e-6);
+        out.push({ face: world, pts: pts.map(p => [p.x, p.y, p.z]) as VanillaQuad['pts'], uv: rotated.map(([a, b]) => [a / 16, 1 - b / 16]) as VanillaQuad['uv'],
+          texture: face.texture, shade: e.shade !== false, ao: data.ambientOcclusion?.[model] !== false,
+          cull: face.cullface ? ROT_FACE(face.cullface, variant) : null, onBoundary: flat && (fullCollision || Math.abs(level - edge) < 1e-6) });
+      }
+    }
+  }
+  quadCache.set(key, out); return out;
+}
+
 export interface BlockMesh { key: string; geometry: BufferGeometry; textures: string[] }
 const cache = new Map<string, BlockMesh>();
 /** Bake the selected vanilla faces/UVs into one reusable instanced geometry per state. No per-frame mesh rebuilding. */
@@ -64,38 +119,15 @@ export function vanillaMesh(name: string, props: BlockStateProps | null): BlockM
   const key = JSON.stringify(variants);
   const cached = cache.get(key); if (cached) return cached;
   const geometry = new BufferGeometry(), positions: number[] = [], uvs: number[] = [], textures: string[] = [];
-  for (const variant of variants) {
-    const transform = new Matrix4().makeTranslation(.5,.5,.5)
-      .multiply(new Matrix4().makeRotationY(-(variant.y ?? 0) * Math.PI / 180))
-      .multiply(new Matrix4().makeRotationX(-(variant.x ?? 0) * Math.PI / 180))
-      .multiply(new Matrix4().makeTranslation(-.5,-.5,-.5));
-    for (const e of data.models[canonical(variant.model)].elements) {
-      for (const [side, face] of Object.entries(e.faces) as [FaceName, Face][]) {
-        const start = positions.length / 3;
-        const pts = corners(side,e.from,e.to).map(p => new Vector3(...p as [number,number,number]).multiplyScalar(1/16).applyMatrix4(transform));
-        const [u,v,U,V] = face.uv ?? defaultUV(side,e.from,e.to);
-        const uv = [[u,v],[U,v],[u,V],[U,V]];
-        // Texture rotation follows the perimeter, rather than swapping rectangular UV bounds.
-        const perimeter = [0,1,3,2], shift = (face.rotation ?? 0) / 90;
-        let rotated = uv.map((_,i) => uv[perimeter[(perimeter.indexOf(i) + shift) % 4]]);
-        if (variant.uvlock && (variant.x || variant.y)) {
-          const normal = pts[2].clone().sub(pts[0]).cross(pts[1].clone().sub(pts[0]));
-          const worldSide: FaceName = Math.abs(normal.y) > Math.abs(normal.x) && Math.abs(normal.y) > Math.abs(normal.z) ? (normal.y>0 ? 'up' : 'down') : Math.abs(normal.x)>Math.abs(normal.z) ? (normal.x>0 ? 'east' : 'west') : (normal.z>0 ? 'south' : 'north');
-          const min=new Vector3(Infinity,Infinity,Infinity), max=new Vector3(-Infinity,-Infinity,-Infinity);
-          pts.forEach(p=>{min.min(p);max.max(p);});
-          const reference=corners(worldSide,min.toArray(),max.toArray()).map(p=>new Vector3(...p as [number,number,number]));
-          const locked=rotated;
-          rotated=pts.map(p=>locked[reference.findIndex(q=>q.distanceToSquared(p)<1e-12)]);
-        }
-        for (const i of [0,2,1,2,3,1]) {
-          positions.push(pts[i].x,pts[i].y,pts[i].z);
-          uvs.push(rotated[i][0]/16,1-rotated[i][1]/16);
-        }
-        let material = textures.indexOf(face.texture);
-        if (material < 0) { material = textures.length; textures.push(face.texture); }
-        geometry.addGroup(start,6,material);
-      }
+  for (const q of vanillaQuads(name, props)) {
+    const start = positions.length / 3;
+    for (const i of [0,2,1,2,3,1]) {
+      positions.push(q.pts[i][0],q.pts[i][1],q.pts[i][2]);
+      uvs.push(q.uv[i][0],q.uv[i][1]);
     }
+    let material = textures.indexOf(q.texture);
+    if (material < 0) { material = textures.length; textures.push(q.texture); }
+    geometry.addGroup(start,6,material);
   }
   // One draw group per texture, not per face (especially important for scaffolding).
   const groupedPositions: number[] = [], groupedUVs: number[] = [];

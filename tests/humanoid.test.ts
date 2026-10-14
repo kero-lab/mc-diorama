@@ -1,6 +1,7 @@
 // HumanoidModel#setupAnim (1.21.11) worked values (VANILLA-RENDER.md §2).
+import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { BASE_POSE, setupAnim, setupAnimInto, toThree, type PartName, type PartPose } from '../src/vanilla/humanoid';
+import { BASE_POSE, setupAnim, setupAnimInto, THREE_EULER_ORDER, toThree, type PartName, type PartPose } from '../src/vanilla/humanoid';
 import type { SpectatorPose } from '../src/vanilla/spectator';
 
 const pose = (o: Partial<SpectatorPose> = {}): SpectatorPose => ({ p: [0, 0, 0], bodyYaw: 0, headYaw: 0, pitch: 0, walkPos: 0, walkSpeed: 0, crouch: false, sprint: false, ground: true, held: null, age: 0, ...o });
@@ -65,5 +66,21 @@ describe('setupAnimInto', () => {
   it('does not mutate BASE_POSE', () => {
     setupAnim(pose({ crouch: true }), { reducedMotion: false });
     expect(BASE_POSE.head.y).toBe(0);
+  });
+});
+
+describe('toThree euler order', () => {
+  const p: PartPose = { x: 0, y: 0, z: 0, xRot: 0.7, yRot: -0.9, zRot: 0.5 };
+  const err = (order: 'ZYX' | 'XYZ') => {
+    const got = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(...toThree(p).rotation, order));
+    const rx = (a: number) => new THREE.Matrix4().makeRotationX(a);
+    const v = new THREE.Matrix4().makeRotationZ(p.zRot).multiply(new THREE.Matrix4().makeRotationY(p.yRot)).multiply(rx(p.xRot));   // vanilla Rz·Ry·Rx
+    const want = rx(Math.PI).multiply(v).multiply(rx(-Math.PI));
+    return Math.max(...got.elements.map((e, i) => Math.abs(e - want.elements[i])));
+  };
+  it('is exact with THREE_EULER_ORDER and wrong with XYZ', () => {
+    expect(THREE_EULER_ORDER).toBe('ZYX');
+    expect(err(THREE_EULER_ORDER)).toBeLessThan(1e-9);
+    expect(err('XYZ')).toBeGreaterThan(1e-3);
   });
 });

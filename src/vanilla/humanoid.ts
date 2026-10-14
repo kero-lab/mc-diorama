@@ -44,7 +44,11 @@ export function setupAnim(p: SpectatorPose, opts: { reducedMotion: boolean }): H
   return out;
 }
 
-/** Vanilla model space → three model space: x kept, y flipped and lifted so the feet are at 0, z flipped. A rotation
+/** Euler order the three rotation from toThree MUST be applied with: vanilla ModelPart#translateAndRotate is
+ *  rotationZYX(zRot, yRot, xRot) = Rz·Ry·Rx, and conjugating by Rx(π) keeps that order. three's default 'XYZ' mis-poses. */
+export const THREE_EULER_ORDER = 'ZYX' as const;
+
+/** Vanilla model space → three model space (rotation is for `THREE_EULER_ORDER`): x kept, y flipped and lifted so the feet are at 0, z flipped. A rotation
  *  conjugated by that 180° turn about x keeps its x angle and negates its y and z angles. */
 export function toThree(part: PartPose): { position: [number, number, number]; rotation: [number, number, number] } {
   return { position: [part.x, 24 - part.y, -part.z], rotation: [part.xRot, -part.yRot, -part.zRot] };

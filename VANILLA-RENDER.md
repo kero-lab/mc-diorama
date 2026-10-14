@@ -72,14 +72,28 @@ Implemented in: `scripts/extract-minecraft.py` (flag), `src/scene/vanilla-blocks
 
 Sprint particles (`Entity#baseTick`, client, remote entities included): sprinting and not crouching and not in a fluid and alive;
 block from `getOnPos(0.2)`; position `x + (r - 0.5) * width`, `y + 0.1`, `z + (r - 0.5) * width`; direction `(-4 vx, 1.5, -4 vz)`.
-Fall dust (`LivingEntity#checkFallDamage`, server): `power = floor(fall - 3) > 0` (`safe_fall_distance` 3.0);
+Fall dust (`LivingEntity#checkFallDamage`, server): `power = floor(fall + 1e-6 - 3) > 0` (`safe_fall_distance` 3.0);
 `count = (int)(150 * min(0.2 + power / 15, 2.5))`; velocity gaussian `* 0.15`.
 Particle constructor: direction `+-0.4` random, normalised to `(r + r + 1) * 0.15 * 0.4`, `y += 0.1`; life `(int)(4 / (r * 0.9 + 0.1))`;
 per tick `yd -= 0.04 * gravity`, velocity `*= 0.98`, on ground `x, z *= 0.7`.
 `TerrainParticle`: gravity `1`, colour `0.6`, half-size `0.05` to `0.1`, UV a random 1/4 x 1/4 window (u flipped).
 The texture is the block model's `particle` texture (falling back to `#all`); the bundle's `particles` map is
 `{ blockName: texturePath }`, taken from the first model of the block's blockstate.
-Implemented in: `scripts/extract-minecraft.py` (texture map), `src/scene/landing-puff.tsx`.
+Details the implementation follows (client decompile; they correct the first draft of this section):
+- No onGround check for sprint dust: an airborne player simply has air at `getOnPos(0.2)` (`RenderShape.INVISIBLE`). On ground
+  `getOnPos` uses the main supporting block's column (nearest under the 0.6-wide box); off-column positions are clamped into it.
+- `fall` is the server's `fallDistance`: the summed downward travel since the last on-ground tick, the landing tick's own dy
+  excluded (`LivingEntity#checkFallDamage` reads it before `super` adds dy); `power = floor(fall + 1e-6 - 3)`. A 3.25-block
+  drop has power 0: no burst. Off-column landings are pulled to the supporting block's edge.
+- `Particle#tick` order: `xo = x`; `if (age++ >= lifetime) remove`; `yd -= 0.04 * gravity`; `move`; `* 0.98`; on ground
+  `x, z * 0.7`. So gravity applies BEFORE the move, and a particle is drawn for `lifetime + 1` tick intervals. A new particle
+  is queued and first ticked the tick after its spawn (`ParticleEngine#tick`), so interval 0 draws it still at the spawn point.
+- `Particle#move`: a vertical move cut to ~0 by a collision sets `stoppedByCollision`; the particle never moves again. `yd`
+  is not zeroed by a collision. The diorama collides only with the source block's top; vanilla collides the 0.2 box with
+  every block.
+- Drawn at `lerp(partialTick, xo, x)`; half-extent `quadSize = 0.1 * (r * 0.5 + 0.5) * 2 / 2`; `uo, vo = r * 3` (not
+  floored), window `[uo/4, (uo+1)/4]` with U0 at local x -1. Pipeline `TRANSLUCENT_PARTICLE`: blended, alpha < 0.1 discarded.
+Implemented in: `scripts/extract-minecraft.py` (texture map), `src/vanilla/particles.ts`, `src/scene/particles.tsx`.
 
 ## 8. Sky, fog and sun (noon, plains)
 

@@ -1,5 +1,5 @@
 'use client';
-import type { RefObject } from 'react';
+import { Suspense, type RefObject } from 'react';
 import { RenderFrameContext } from './render-clock';
 import { Canvas } from '@react-three/fiber';
 import type { FrameState } from './frame';
@@ -10,6 +10,7 @@ import { CourseField } from './scene/course-field';
 import { EnvironmentView, VANILLA_NOON } from './scene/environment';
 import { CameraRig } from './scene/camera-rig';
 import { EntityModel } from './scene/entity-model';
+import { Particles } from './scene/particles';
 import { PlayerModel } from './scene/player-model';
 import type { Timeline } from './types';
 
@@ -25,6 +26,7 @@ export default function DioramaCanvas(p: DioramaCanvasProps) {
       <CameraRig id={p.camera} custom={p.custom} tl={p.tl} frame={frame} rotation={p.rotation} reducedMotion={p.reducedMotion} timeScale={p.timeScale} />
       <CourseField blocks={frame.blocks} />
       {frame.rem && p.camera !== 'first' && <PlayerModel samples={p.tl.samples} T={frame.T} reducedMotion={p.reducedMotion} />}
+      {!p.reducedMotion && <Suspense fallback={null}><Particles tl={p.tl} T={frame.T} blocks={frame.blocks} /></Suspense>}
       {frame.entities.map(e => e.pose && <EntityModel key={e.id} kind={e.kind} pose={e.pose} />)}
       <Scene tl={p.tl} frame={frame} xray={p.xray} selected={p.selected} />
       </RenderFrameContext.Provider>

@@ -55,4 +55,8 @@ describe('vanilla light', () => {
     const ao = faceCornerAO([0, 0, 0], 'up', true, world(solid));
     expect(aoAt(ao, [0, 1, 1])).toBeCloseTo((0.2 + 0.2 + 1 + 1) / 4);
   });
+  it('vanilla: slime is walled in (view-blocking, light block > 0), so it triggers the corner copy with the default', () => {
+    const slime = (x: number, y: number, z: number) => ['1,1,0', '0,1,1', '1,2,0', '0,2,1'].includes(`${x},${y},${z}`) ? shadeBrightness({ name: 'slime_block', state: null }) : 1;
+    expect(aoAt(faceCornerAO([0, 0, 0], 'up', true, slime), [1, 1, 1])).toBeCloseTo((0.2 + 0.2 + 0.2 + 1) / 4);
+  });
 });

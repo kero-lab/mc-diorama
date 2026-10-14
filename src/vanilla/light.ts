@@ -49,8 +49,9 @@ export interface FaceAO { uAxis: 0 | 1 | 2; vAxis: 0 | 1 | 2; c: [number, number
 
 /** The four corner values of one face of the block at `at`. `onBoundary`: the quad lies on the block's face plane, so
  *  vanilla samples the layer in front of it (faceCubic); otherwise the block's own layer.
- *  `blocksAt` is `!(!isViewBlocking || lightBlock == 0)` for the cell one further out along the normal (opaque full
- *  cubes); a side counts as walled in only when that outer cell blocks. Defaults to `shadeAt(...) < 1`. */
+ *  `blocksAt` is vanilla's `isViewBlocking && lightBlock > 0` for the cell one further out along the normal; a side
+ *  counts as walled in only when that outer cell blocks. Slime, double slabs and the opaque cubes block; honey, glass
+ *  and bottom/top slabs are clear. For this block set that equals `shadeAt(...) < 1`, which is the default. */
 export function faceCornerAO(at: Vec3T, face: FaceName, onBoundary: boolean, shadeAt: (x: number, y: number, z: number) => number, blocksAt: (x: number, y: number, z: number) => boolean = (x, y, z) => shadeAt(x, y, z) < 1): FaceAO {
   const [uAxis, vAxis] = AXES[face], n = FACE_NORMAL[face];
   const layer: Vec3T = onBoundary ? [at[0] + n[0], at[1] + n[1], at[2] + n[2]] : [at[0], at[1], at[2]];

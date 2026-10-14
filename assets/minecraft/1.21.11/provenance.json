@@ -3,9 +3,9 @@
   "source": "https://piston-data.mojang.com/v1/objects/ba2df812c2d12e0219c489c4cd9a5e1f0760f5bd/client.jar",
   "clientSha1": "ba2df812c2d12e0219c489c4cd9a5e1f0760f5bd",
   "copyright": "Minecraft artwork and model data \u00a9 Mojang AB / Microsoft. Not relicensed under the repository's code license.",
-  "purpose": "Version-matched block visualization in the private RemHub Minecraft controller; no game code or executable distributed.",
+  "purpose": "Version-matched Minecraft visualization in @kero-lab/mc-diorama (RemHub, KeroHub Rem Live); no game code or executable distributed.",
   "usageGuidelines": "https://www.minecraft.net/en-us/usage-guidelines",
-  "reproduce": "python3 scripts/craft/extract-minecraft-blocks.py <verified-client.jar>",
+  "reproduce": "python3 scripts/extract-minecraft.py <verified-client.jar>",
   "sourceSha256": {
     "blockstates/glass_pane.json": "0f50560791fff94782f5c9d98c367d8d9c7e86aa9766a4d4d0228a5da5246422",
     "blockstates/honey_block.json": "780ffcffff91d90efe172f2f1f200a06dcbe885fe5316d16bebf72bae2ef7c44",
@@ -110,6 +110,7 @@
     "textures/block/scaffolding_side.png": "4e668a9d420ec32b39ccd26709c7de35efcc2db305c8f619cfc20c6ad7cb2e89",
     "textures/block/scaffolding_top.png": "f122ecdd7cb1ba88104ec19d999c70e853279f5369c0f28133d566390b4bbd55",
     "textures/block/slime_block.png": "9175dd2ac2a6e93c0e5c3b46e5006fd9f230ee005b7da3ea109f6d872e30209d",
-    "textures/block/stone.png": "b5e10adc72442bfb257ce7ba0b9bbe36475a0c8cdfec89b80dc9517203ff3e9f"
+    "textures/block/stone.png": "b5e10adc72442bfb257ce7ba0b9bbe36475a0c8cdfec89b80dc9517203ff3e9f",
+    "textures/environment/celestial/sun.png": "c7188d5685ec66b0200d716e53161803c119f609d9b2a67f6a86b30bd96043eb"
   }
 }

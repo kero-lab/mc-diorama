@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { spectatorPoseAt, spectatorTrack } from '../src/vanilla/spectator';
+import { spectatorPoseAt, spectatorRebuilds, spectatorTrack } from '../src/vanilla/spectator';
 import { toVanillaYaw, wrapDegrees, rotLerp, vanillaYawToThree } from '../src/vanilla/yaw';
 import { seedTimeline } from '../src/seed';
 import { loadReal } from './fixtures/real';
@@ -55,12 +55,21 @@ describe('spectator track', () => {
     expect(spectatorPoseAt(ss, 50)!.crouch).toBe(true);
     expect(spectatorPoseAt(ss, 100)!.sprint).toBe(true);
   });
-  it('extends incrementally and matches a fresh build', () => {
+  it('extends incrementally across array copies (as the reducer does) and matches a fresh build', () => {
     const ss = walk(30, 0.2), live = ss.slice(0, 10);
     spectatorTrack(live);
-    live.push(...ss.slice(10));
-    const a = spectatorPoseAt(live, ss[25].t + 20)!, b = spectatorPoseAt([...ss], ss[25].t + 20)!;
+    const before = spectatorRebuilds();
+    const copy = [...live, ...ss.slice(10)];               // draft() copies the array every batch
+    const a = spectatorPoseAt(copy, ss[25].t + 20)!;
+    expect(spectatorRebuilds()).toBe(before);              // no rebuild
+    const b = spectatorPoseAt(walk(30, 0.2), ss[25].t + 20)!;   // fresh Sample objects: a fresh build
     expect(a).toEqual(b);
+  });
+  it('the head reaches its target exactly 3 ticks after the last turn', () => {
+    const ss = Array.from({ length: 30 }, (_, i) => s(i, 0, 0, { yaw: Math.min(i, 10) * 0.1 }));
+    const track = spectatorTrack(ss), target = toVanillaYaw(1.0);
+    expect(Math.abs(wrapDegrees(track.state(12)[5] - target))).toBeLessThan(1e-9);
+    expect(Math.abs(wrapDegrees(track.state(11)[5] - target))).toBeGreaterThan(0.1);
   });
   it('a ridden sample stops the walk animation (isPassenger)', () => {
     const ss = walk(30, 0.2).map((x, i) => (i >= 15 ? { ...x, ride: 'boat' } : x));

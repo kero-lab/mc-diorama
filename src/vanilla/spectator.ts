@@ -18,7 +18,11 @@ interface Sim {
   headSteps: number; theadYaw: number;                                                 // lerpHeadSteps / lerpYHeadRot
   states: Float64Array; olds: Float64Array; n: number; tail: Sample | null;
 }
-const cache = new WeakMap<readonly Sample[], Sim>();
+// Keyed by the run's first Sample: timelineReducer copies the samples array every batch, but the Sample objects are shared.
+const cache = new WeakMap<Sample, Sim>();
+let rebuilds = 0;
+/** Test hook: how many full (re)builds spectatorTrack has done. */
+export const spectatorRebuilds = () => rebuilds;
 const grow = (a: Float64Array, need: number) => { if (a.length >= need) return a; const b = new Float64Array(Math.max(need, a.length * 2)); b.set(a); return b; };
 
 function step(sim: Sim, prev: Sample | null, cur: Sample) {
@@ -29,14 +33,14 @@ function step(sim: Sim, prev: Sample | null, cur: Sample) {
   if (broke) {                                                         // teleport: snapTo, interpolation cancelled, head snapped
     s[0] = cur.p[0]; s[1] = cur.p[1]; s[2] = cur.p[2]; s[3] = ty; s[4] = tp; s[5] = ty;
     if (!prev) { s[6] = ty; s[7] = 0; s[8] = 0; s[9] = 0; }
-    sim.xo = s[0]; sim.zo = s[2]; sim.steps = 0; sim.headSteps = 0;
+    sim.xo = s[0]; sim.zo = s[2]; sim.steps = 0; sim.headSteps = 0; sim.theadYaw = ty;
     sim.olds.set(s, i * W);                                            // never lerp across a snap
   } else {
     // InterpolationHandler#interpolateTo: restart at 3 steps only when idle or the target changed
     if (sim.steps <= 0 || sim.tyaw !== ty || sim.tpitch !== tp || sim.tx !== cur.p[0] || sim.ty !== cur.p[1] || sim.tz !== cur.p[2]) {
       sim.steps = 3; sim.tx = cur.p[0]; sim.ty = cur.p[1]; sim.tz = cur.p[2]; sim.tyaw = ty; sim.tpitch = tp;
     }
-    sim.headSteps = 3; sim.theadYaw = ty;                              // lerpHeadTo(yaw, 3)
+    if (prev === null || sim.theadYaw !== ty) { sim.headSteps = 3; sim.theadYaw = ty; }   // lerpHeadTo(yaw, 3): the server sends RotateHead only when the head yaw changed
     if (sim.steps > 0) {                                               // InterpolationHandler#interpolate
       const k = 1 / sim.steps;
       s[0] += (sim.tx - s[0]) * k; s[1] += (sim.ty - s[1]) * k; s[2] += (sim.tz - s[2]) * k;
@@ -62,10 +66,12 @@ function step(sim: Sim, prev: Sample | null, cur: Sample) {
 }
 
 export function spectatorTrack(samples: readonly Sample[]): SpectatorTrack {
-  let sim = cache.get(samples);
-  if (!sim || (sim.n > 0 && (samples.length < sim.n || samples[sim.n - 1] !== sim.tail))) {
+  if (samples.length === 0) return { length: 0, state: () => new Float64Array(W), old: () => new Float64Array(W) };
+  let sim = cache.get(samples[0]);
+  if (!sim || samples.length < sim.n || samples[sim.n - 1] !== sim.tail) {
     sim = { s: new Float64Array(W), xo: 0, zo: 0, steps: 0, tx: 0, ty: 0, tz: 0, tyaw: 0, tpitch: 0, headSteps: 0, theadYaw: 0, states: new Float64Array(W * 64), olds: new Float64Array(W * 64), n: 0, tail: null };
-    cache.set(samples, sim);
+    cache.set(samples[0], sim);
+    rebuilds++;
   }
   for (let i = sim.n; i < samples.length; i++) step(sim, i ? samples[i - 1] : null, samples[i]);
   const k = sim;
